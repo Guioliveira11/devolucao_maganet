@@ -1,17 +1,24 @@
 package com.magalu.devolucao.domain;
 
 import com.magalu.devolucao.domain.enums.DestinoProduto;
+import com.magalu.devolucao.domain.enums.ItemConferencia;
+import com.magalu.devolucao.domain.enums.MotivoDevolucao;
+import com.magalu.devolucao.domain.enums.MotivoReprovacao;
 import com.magalu.devolucao.domain.enums.StatusSolicitacao;
+import com.magalu.devolucao.domain.enums.TipoResolucao;
 import com.magalu.devolucao.exception.TransicaoInvalidaException;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "solicitacoes_devolucao")
@@ -34,10 +41,11 @@ public class SolicitacaoDevolucao {
         TRANSICOES_PERMITIDAS.put(StatusSolicitacao.QR_EXPIRADO,
                 EnumSet.of(StatusSolicitacao.AGUARDANDO_ESCANEAMENTO, StatusSolicitacao.CANCELADA));
         TRANSICOES_PERMITIDAS.put(StatusSolicitacao.EM_ANALISE,
-                EnumSet.of(StatusSolicitacao.DESTINO_PENDENTE, StatusSolicitacao.CANCELADA));
+                EnumSet.of(StatusSolicitacao.DESTINO_PENDENTE, StatusSolicitacao.REPROVADA, StatusSolicitacao.CANCELADA));
         TRANSICOES_PERMITIDAS.put(StatusSolicitacao.DESTINO_PENDENTE, EnumSet.of(StatusSolicitacao.CONCLUIDA));
         TRANSICOES_PERMITIDAS.put(StatusSolicitacao.CONCLUIDA, EnumSet.noneOf(StatusSolicitacao.class));
         TRANSICOES_PERMITIDAS.put(StatusSolicitacao.CANCELADA, EnumSet.noneOf(StatusSolicitacao.class));
+        TRANSICOES_PERMITIDAS.put(StatusSolicitacao.REPROVADA, EnumSet.noneOf(StatusSolicitacao.class));
     }
 
     @Id
@@ -84,6 +92,29 @@ public class SolicitacaoDevolucao {
 
     private LocalDateTime dataRecebimento;
 
+    // Informado pelo cliente ao abrir a solicitacao (nulo em solicitacoes antigas).
+    @Enumerated(EnumType.STRING)
+    private MotivoDevolucao motivo;
+
+    private String comentario;
+
+    @Enumerated(EnumType.STRING)
+    private TipoResolucao tipoResolucao;
+
+    @OneToMany(mappedBy = "solicitacao", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<EvidenciaDevolucao> evidencias = new ArrayList<>();
+
+    // Resultado da conferencia no balcao. Itens guardados como nomes do enum separados por virgula.
+    private String itensConferidos;
+
+    @Enumerated(EnumType.STRING)
+    private MotivoReprovacao motivoReprovacao;
+
+    private String observacaoConferencia;
+
+    private LocalDateTime dataConferencia;
+
     // Lock otimista: evita que dois funcionarios processem o mesmo
     // escaneamento simultaneamente (race condition no balcao da loja).
     @Version
@@ -122,6 +153,46 @@ public class SolicitacaoDevolucao {
     // Reservado para futura confirmacao confiavel da integracao; sem endpoint publico.
     public void concluir(LocalDateTime agora) {
         transicionarEstado(StatusSolicitacao.CONCLUIDA);
+        this.dataConclusao = agora;
+    }
+
+    public void adicionarEvidencia(EvidenciaDevolucao evidencia) {
+        this.evidencias.add(evidencia);
+        evidencia.setSolicitacao(this);
+    }
+
+    public void registrarConferencia(Collection<ItemConferencia> itens, LocalDateTime agora) {
+        this.itensConferidos = (itens == null || itens.isEmpty()) ? null : itens.stream()
+                .distinct()
+                .sorted()
+                .map(Enum::name)
+                .collect(Collectors.joining(","));
+        this.dataConferencia = agora;
+    }
+
+    public List<ItemConferencia> itensConferidosLista() {
+        if (itensConferidos == null || itensConferidos.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(itensConferidos.split(","))
+                .map(ItemConferencia::valueOf)
+                .toList();
+    }
+
+    /**
+     * Produto nao passou na conferencia do balcao. A solicitacao termina aqui
+     * e o produto fica com o cliente; nao existe destino nem reembolso/troca.
+     */
+    public void reprovar(MotivoReprovacao motivo, String observacao, LocalDateTime agora) {
+        if (motivo == null) {
+            throw new TransicaoInvalidaException("Informe o motivo da reprovacao");
+        }
+        if (motivo == MotivoReprovacao.OUTRO && (observacao == null || observacao.isBlank())) {
+            throw new TransicaoInvalidaException("Descreva o motivo da reprovacao");
+        }
+        transicionarEstado(StatusSolicitacao.REPROVADA);
+        this.motivoReprovacao = motivo;
+        this.observacaoConferencia = observacao == null || observacao.isBlank() ? null : observacao.strip();
         this.dataConclusao = agora;
     }
 
