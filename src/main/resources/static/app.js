@@ -1,5 +1,5 @@
-// Site de devoluções: cliente solicita e acompanha, funcionário recebe na loja.
-// Tudo roda numa página só; cada "tela" é uma função que devolve HTML.
+// Maga Next — Troca e Devolução
+// Cliente solicita e acompanha pelo celular; funcionário recebe, confere e define o destino na loja.
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -10,12 +10,19 @@ const esc = (value) =>
 
 
 // ---------------------------------------------------------------------------
-// Textos e ícones
+// Textos, rótulos de negócio e ícones
 // ---------------------------------------------------------------------------
 
 const ICONS = {
   box: '<path d="m3 7 9-5 9 5v10l-9 5-9-5Z"/><path d="m3 7 9 5 9-5M12 12v10M7 4.8l9 5"/>',
-  returns: '<path d="M7 7h8a6 6 0 0 1 0 12h-4M7 7l4-4M7 7l4 4M4 15v4M2 17h4"/>',
+  dress: '<path d="M9 3 7 6l2 3-3 11h12L15 9l2-3-2-3-3 2-3-2Z"/><path d="M9 9h6"/>',
+  audio: '<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="2" y="13" width="4" height="7" rx="2"/><rect x="18" y="13" width="4" height="7" rx="2"/>',
+  tv: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  coffee: '<path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v7a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v3M10 2v3M14 2v3"/>',
+  returns: '<path d="M7 7h10l-3-3m3 3-3 3M17 17H7l3-3m-3 3 3 3"/>',
+  refund: '<circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.7-1.5-1.5 0-2.6.8-2.6 2s1 1.7 2.7 2c1.7.3 2.6.9 2.6 2.1 0 1.3-1.1 2.1-2.7 2.1-1.3 0-2.3-.5-2.8-1.6M12 6.5v11"/>',
+  store: '<path d="M3 9 5 4h14l2 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/>',
+  truck: '<rect x="1" y="5" width="14" height="12" rx="1"/><path d="M15 9h4l3 4v4h-7Z"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>',
   bell: '<path d="M5 9a7 7 0 0 1 14 0v6l2 3H3l2-3ZM10 21h4"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>',
   qr: '<path d="M3 3h6v6H3ZM15 3h6v6h-6ZM3 15h6v6H3ZM15 15h2v2h-2ZM21 14v4h-3v3M14 21h1"/>',
@@ -23,33 +30,109 @@ const ICONS = {
   pin: '<path d="M19 9c0 5-7 12-7 12S5 14 5 9a7 7 0 0 1 14 0Z"/><circle cx="12" cy="9" r="2"/>',
   refresh: '<path d="M20 7a9 9 0 1 0 1 8M20 2v5h-5"/>',
   arrow: '<path d="M19 12H5M10 7l-5 5 5 5"/>',
+  chevronRight: '<path d="m9 6 6 6-6 6"/>',
   camera: '<path d="M8 5 10 2h4l2 3h5v16H3V5Z"/><circle cx="12" cy="12" r="4"/>',
+  video: '<rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10 6-3v10l-6-3Z"/>',
+  comment: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/>',
   check: '<path d="m5 12 4 4L19 6"/>',
+  checkCircle: '<circle cx="12" cy="12" r="9"/><path d="m8.5 12.2 2.4 2.4 4.8-5"/>',
+  close: '<path d="M18 6 6 18M6 6l12 12"/>',
+  closeCircle: '<circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/>',
+  calendar: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9h18"/>',
+  flag: '<path d="M5 21V4h13l-2.5 4.5L18 13H5"/>',
+  leaf: '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.4 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10Z"/><path d="M2 21c0-3 1.8-5.4 5.1-6C9.5 14.5 12 13 13 12"/>',
+  heart: '<path d="M19.5 12.6 12 20l-7.5-7.4A5 5 0 0 1 12 5.6a5 5 0 0 1 7.5 7Z"/>',
+  wrench: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.7-3.7a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9Z"/>',
 };
 
 const icon = (name) =>
   `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ICONS.box}</svg>`;
 
+function productGlyph(name = '') {
+  const lower = name.toLowerCase();
+  if (lower.includes('vestido') || lower.includes('camisa') || lower.includes('roupa')) return 'dress';
+  if (lower.includes('fone') || lower.includes('caixa de som')) return 'audio';
+  if (lower.includes('tv') || lower.includes('monitor')) return 'tv';
+  if (lower.includes('cafeteira') || lower.includes('liquidificador')) return 'coffee';
+  return 'box';
+}
+
+function productImageUrl(name = '') {
+  const lower = name.toLowerCase();
+  if (lower.includes('vestido') || lower.includes('camisa') || lower.includes('roupa')) return '/assets/vestido-camponesa.svg';
+  if (lower.includes('fone') || lower.includes('caixa de som')) return '/assets/produto-audio.svg';
+  if (lower.includes('tv') || lower.includes('monitor')) return '/assets/produto-tv.svg';
+  if (lower.includes('cafeteira') || lower.includes('liquidificador')) return '/assets/produto-eletro.svg';
+  return '/assets/produto-box.svg';
+}
+
 const STATUS_NAMES = {
-  AGUARDANDO_ESCANEAMENTO: 'Aguardando entrega',
-  QR_EXPIRADO: 'QR expirado',
-  EM_ANALISE: 'Em análise',
-  DESTINO_PENDENTE: 'Destino em processamento',
+  AGUARDANDO_ESCANEAMENTO: 'Aguardando entrega na loja',
+  QR_EXPIRADO: 'QR Code expirado',
+  EM_ANALISE: 'Em conferência',
+  DESTINO_PENDENTE: 'Aprovada · Destino definido',
   CONCLUIDA: 'Concluída',
   CANCELADA: 'Cancelada',
+  REPROVADA: 'Não aprovada',
 };
 
 const STATUS_COLORS = {
   CONCLUIDA: 'green',
+  DESTINO_PENDENTE: 'green',
   CANCELADA: 'gray',
-  QR_EXPIRADO: 'red',
-  DESTINO_PENDENTE: 'orange',
+  QR_EXPIRADO: 'orange',
+  REPROVADA: 'pink',
+  EM_ANALISE: 'purple',
+};
+
+const MOTIVOS_DEVOLUCAO = {
+  PRODUTO_COM_DEFEITO: 'Produto com defeito',
+  PRODUTO_DANIFICADO: 'Produto danificado',
+  DIFERENTE_DO_ANUNCIADO: 'Produto diferente do anunciado',
+  PRODUTO_ERRADO: 'Produto errado',
+  ARREPENDIMENTO: 'Arrependimento',
+  OUTRO: 'Outro',
+};
+
+const TIPOS_RESOLUCAO = {
+  TROCA: { title: 'Troca', desc: 'Receba outro produto', icon: 'returns' },
+  REEMBOLSO: { title: 'Reembolso', desc: 'Receba o valor de volta', icon: 'refund' },
 };
 
 const DESTINATIONS = {
-  ESTOQUE: 'Estoque',
-  REPARO: 'Reparo',
-  DOACAO_ONG: 'Doação para ONG',
+  ESTOQUE: 'Retornar ao estoque',
+  REPARO: 'Encaminhar para reparo',
+  DOACAO_ONG: 'Destinação socioambiental (ONG parceira)',
+};
+
+const ONGS_PARCEIRAS = {
+  ECOSMAG: {
+    id: 'ECOSMAG',
+    title: 'ECOSMAG Sergipe',
+    desc: 'Reciclagem e Inclusão Digital',
+    icon: 'leaf',
+  },
+  EXERCITO_SALVACAO: {
+    id: 'EXERCITO_SALVACAO',
+    title: 'Exército da Salvação',
+    desc: 'Assistência Social e Reutilização',
+    icon: 'heart',
+  },
+};
+
+const CHECKLIST_ITEMS = {
+  CORRESPONDE_AO_PEDIDO: 'Produto corresponde ao pedido',
+  SEM_SINAIS_DE_USO: 'Produto em condições adequadas',
+  ACESSORIOS_COMPLETOS: 'Acessórios e itens presentes',
+  EMBALAGEM_ORIGINAL: 'Embalagem conforme',
+};
+
+const MOTIVOS_REPROVACAO = {
+  SINAIS_DE_USO: 'Produto com sinais de uso indevido',
+  PRODUTO_DIVERGENTE: 'Produto divergente do pedido',
+  ITENS_FALTANDO: 'Acessórios ou peças faltando',
+  DANO_NAO_INFORMADO: 'Avaria incompatível com o relato',
+  OUTRO: 'Outro motivo (especificar abaixo)',
 };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -57,8 +140,32 @@ const isValidToken = (token) => UUID_PATTERN.test(token);
 
 
 // ---------------------------------------------------------------------------
-// Estado da página
+// Estado da aplicação
 // ---------------------------------------------------------------------------
+
+function blankDraft() {
+  return {
+    motivo: 'PRODUTO_COM_DEFEITO',
+    comentario: '',
+    evidencias: [],
+    tipoResolucao: 'TROCA',
+    lojaId: null,
+  };
+}
+
+function blankInspection() {
+  return {
+    id: null,
+    item: null,
+    checked: Object.keys(CHECKLIST_ITEMS),
+    decisao: 'APROVAR',
+    destino: 'ESTOQUE',
+    ongParceira: 'ECOSMAG',
+    motivoReprovacao: 'SINAIS_DE_USO',
+    observacao: '',
+    resumoConclusao: null,
+  };
+}
 
 const state = {
   user: null,
@@ -67,8 +174,9 @@ const state = {
   items: [],
   stores: [],
   selectedItem: null,
+  draft: blankDraft(),
+  inspection: blankInspection(),
   unread: 0,
-  // Muda a cada login/logout. Respostas que chegam depois disso são descartadas.
   epoch: 0,
 };
 
@@ -81,7 +189,7 @@ let toastTimer = null;
 
 
 // ---------------------------------------------------------------------------
-// Formatação
+// Formatação e utilitários
 // ---------------------------------------------------------------------------
 
 function formatDate(value) {
@@ -106,17 +214,39 @@ function toQueryString(params) {
   return new URLSearchParams(filled).toString();
 }
 
-// O servidor só grava QR_EXPIRADO quando o job de expiração roda (a cada 5 min).
-// Até lá, a data de validade já diz que o QR venceu, então mostramos isso na hora.
 function effectiveStatus(devolucao) {
   const expired = devolucao.qrExpiraEm && new Date(devolucao.qrExpiraEm) <= Date.now();
   if (devolucao.status === 'AGUARDANDO_ESCANEAMENTO' && expired) return 'QR_EXPIRADO';
   return devolucao.status;
 }
 
+// Reduz e comprime qualquer imagem escolhida no celular para caber com folga na requisição.
+function compressImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Não foi possível ler a imagem selecionada.'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Formato de imagem inválido.'));
+      img.onload = () => {
+        const maxSide = 720;
+        const scale = Math.min(1, maxSide / Math.max(img.width || 1, img.height || 1));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.78));
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 
 // ---------------------------------------------------------------------------
-// Pedaços de HTML reaproveitados
+// Componentes visuais reutilizáveis
 // ---------------------------------------------------------------------------
 
 const statusTag = (status) =>
@@ -153,17 +283,35 @@ function pageHeading(eyebrow, title, text, withRefresh = true) {
       <div>
         <span class="eyebrow">${esc(eyebrow)}</span>
         <h1>${esc(title)}</h1>
-        <p class="muted">${esc(text)}</p>
+        ${text ? `<p class="muted">${esc(text)}</p>` : ''}
       </div>
       ${refresh}
     </div>`;
 }
 
-const backButton = (view, label = 'Voltar') =>
-  `<button class="back-button" data-action="navigate" data-view="${view}">${icon('arrow')}${esc(label)}</button>`;
+const backButton = (view, label = 'Voltar', extraData = '') =>
+  `<button type="button" class="back-button" data-action="navigate" data-view="${view}" ${extraData}>${icon('arrow')}${esc(label)}</button>`;
 
 const navigateButton = (view, label, style = 'primary') =>
-  `<button class="button ${style}" data-action="navigate" data-view="${view}">${label}</button>`;
+  `<button type="button" class="button ${style}" data-action="navigate" data-view="${view}">${label}</button>`;
+
+function productSummaryBanner(item, eyebrowLabel = 'PRODUTO SELECIONADO') {
+  const imgUrl = productImageUrl(item.produto);
+  const priceOrQty = item.valorPago != null
+    ? formatMoney(item.valorPago)
+    : plural(item.quantidade || 1, 'unidade', 'unidades');
+  return `
+    <div class="product-summary-card">
+      <div class="product-thumb">
+        <img src="${imgUrl}" alt="${esc(item.produto)}" loading="lazy">
+      </div>
+      <div class="product-summary-text">
+        <span class="eyebrow">${esc(eyebrowLabel)}</span>
+        <h3>${esc(item.produto)}</h3>
+        <p>Pedido #${esc(item.numeroPedido)} · <strong>${esc(priceOrQty)}</strong></p>
+      </div>
+    </div>`;
+}
 
 function pagination(page, action = 'page') {
   if (!page.total) return '';
@@ -172,19 +320,26 @@ function pagination(page, action = 'page') {
   const isLast = (page.pagina + 1) * page.tamanho >= page.total;
   return `
     <div class="pagination">
-      <button class="button outline" data-action="${action}" data-page="${page.pagina - 1}" ${isFirst ? 'disabled' : ''}>Anterior</button>
+      <button type="button" class="button outline" data-action="${action}" data-page="${page.pagina - 1}" ${isFirst ? 'disabled' : ''}>Anterior</button>
       <span>Página ${page.pagina + 1} de ${totalPages}<br>${plural(page.total, 'registro', 'registros')}</span>
-      <button class="button outline" data-action="${action}" data-page="${page.pagina + 1}" ${isLast ? 'disabled' : ''}>Próxima</button>
+      <button type="button" class="button outline" data-action="${action}" data-page="${page.pagina + 1}" ${isLast ? 'disabled' : ''}>Próxima</button>
     </div>`;
 }
 
 function progressStepper(status) {
   if (status === 'CANCELADA') return '';
 
-  const labels = ['Solicitada', 'Entregue na loja', 'Em análise', 'Concluída'];
-  const stepByStatus = { AGUARDANDO_ESCANEAMENTO: 0, QR_EXPIRADO: 0, EM_ANALISE: 2, DESTINO_PENDENTE: 2, CONCLUIDA: 3 };
+  const labels = ['Solicitada', 'Entregue na loja', 'Conferência', status === 'REPROVADA' ? 'Não aprovada' : 'Concluída'];
+  const stepByStatus = {
+    AGUARDANDO_ESCANEAMENTO: 0,
+    QR_EXPIRADO: 0,
+    EM_ANALISE: 2,
+    DESTINO_PENDENTE: 3,
+    CONCLUIDA: 3,
+    REPROVADA: 3,
+  };
   const current = stepByStatus[status] ?? 0;
-  const finished = status === 'CONCLUIDA';
+  const finished = ['CONCLUIDA', 'DESTINO_PENDENTE'].includes(status);
 
   const steps = labels.map((label, i) => {
     const done = i < current || finished;
@@ -223,7 +378,6 @@ async function api(path, { method = 'GET', body } = {}) {
   const headers = { Accept: 'application/json' };
   const isForm = body instanceof URLSearchParams;
 
-  // O CSRF continua ligado no servidor: toda escrita precisa do token.
   if (method !== 'GET') {
     if (!csrf) csrf = await fetchCsrfToken();
     headers[csrf.headerName] = csrf.token;
@@ -266,7 +420,7 @@ async function api(path, { method = 'GET', body } = {}) {
 
 
 // ---------------------------------------------------------------------------
-// Estrutura da página: login, menu, navegação
+// Estrutura da página: login, tema por perfil, navegação
 // ---------------------------------------------------------------------------
 
 function toast(message, isError = false) {
@@ -287,8 +441,11 @@ function showLogin(message = '') {
   state.items = [];
   state.stores = [];
   state.selectedItem = null;
+  state.draft = blankDraft();
+  state.inspection = blankInspection();
   csrf = null;
 
+  document.body.removeAttribute('data-role');
   $('#app').hidden = true;
   $('#login-screen').hidden = false;
   $('#initial-loading').hidden = true;
@@ -312,15 +469,15 @@ function handleError(error) {
 }
 
 const CLIENT_MENU = [
-  ['itens', 'Compras', 'box'],
-  ['devolucoes', 'Devoluções', 'returns'],
+  ['itens', 'Meus pedidos', 'box'],
+  ['devolucoes', 'Trocas e devoluções', 'returns'],
   ['avisos', 'Avisos', 'bell'],
   ['conta', 'Conta', 'user'],
 ];
 
 const EMPLOYEE_MENU = [
-  ['fila', 'Fila da loja', 'list'],
-  ['receber', 'Receber', 'qr'],
+  ['fila', 'Conferência', 'list'],
+  ['receber', 'Ler QR Code', 'qr'],
   ['conta', 'Conta', 'user'],
 ];
 
@@ -328,8 +485,16 @@ function renderNav() {
   if (!state.user) return;
 
   const menu = state.user.perfil === 'CLIENTE' ? CLIENT_MENU : EMPLOYEE_MENU;
-  // Telas internas acendem o item de menu de onde vieram.
-  const active = { lojas: 'itens', detalhe: 'devolucoes' }[state.view] || state.view;
+  const parentMap = {
+    motivo: 'itens',
+    evidencias: 'itens',
+    lojas: 'itens',
+    detalhe: 'devolucoes',
+    conferir: 'fila',
+    resultado: 'fila',
+    concluido: 'fila',
+  };
+  const active = parentMap[state.view] || state.view;
 
   $('#navigation').innerHTML = menu.map(([view, label, glyph]) => {
     const counter = view === 'avisos' && state.unread
@@ -351,7 +516,7 @@ async function refreshUnreadCount() {
       renderNav();
     }
   } catch {
-    // Se falhar, a própria tela principal já mostra o erro de sessão ou conexão.
+    // Silencioso no contador auxiliar.
   }
 }
 
@@ -359,47 +524,84 @@ async function enter(user) {
   state.user = user;
   markActivity();
 
+  const isClient = user.perfil === 'CLIENTE';
+  document.body.dataset.role = user.perfil;
+
   $('#login-screen').hidden = true;
   $('#app').hidden = false;
   $('#initial-loading').hidden = true;
   $('#header-name').textContent = user.nome;
-  $('#header-search').hidden = user.perfil !== 'CLIENTE';
+  $('#header-search').hidden = !isClient;
 
-  await go(user.perfil === 'CLIENTE' ? 'itens' : 'fila');
+  const badge = $('#header-role-badge');
+  if (badge) {
+    badge.textContent = isClient ? 'Cliente' : (user.loja || 'Operação Loja');
+  }
+
+  await go(isClient ? 'itens' : 'fila');
 }
 
 const LOADING_HTML = `
   <div class="loading" role="status"><span class="sr-only">Carregando…</span></div>
   <div class="cards skeleton-list" aria-hidden="true">
-    <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+    <div class="skeleton"></div><div class="skeleton"></div>
   </div>`;
 
-async function go(view, params = {}) {
+// Direcao da proxima transicao: 'back' (botao voltar), 'menu' (navegacao lateral) ou 'forward'
+let navDirection = 'forward';
+const SKELETON_DELAY_MS = 180;
+
+function playEnterAnimation(content, direction) {
+  content.classList.remove('view-leaving', 'view-anim', 'from-left', 'from-right');
+  void content.offsetWidth; // reinicia a animacao mesmo se a classe ja estava aplicada
+  content.classList.add('view-anim');
+  if (direction === 'back') content.classList.add('from-left');
+  else if (direction === 'forward') content.classList.add('from-right');
+}
+
+async function go(view, params = {}, { keepScroll = false } = {}) {
   if (!state.user) return;
 
   stopCamera();
   state.view = view;
   state.params = { ...params };
   const thisRender = ++renderCount;
+  const scrollY = window.scrollY;
+  const direction = navDirection;
+  navDirection = 'forward';
 
   const content = $('#content');
   renderNav();
   content.setAttribute('aria-busy', 'true');
-  content.innerHTML = LOADING_HTML;
+
+  // So mostra o skeleton se a tela demorar; em respostas rapidas evita o "pisca"
+  let skeletonTimer = null;
+  if (!keepScroll) {
+    content.classList.add('view-leaving');
+    skeletonTimer = setTimeout(() => {
+      if (thisRender !== renderCount) return;
+      content.classList.remove('view-leaving', 'view-anim');
+      content.innerHTML = LOADING_HTML;
+    }, SKELETON_DELAY_MS);
+  }
 
   try {
     const render = VIEWS[view] || itemsView;
     const html = await render(params);
-    // O usuário pode ter trocado de tela enquanto esperava a resposta.
     if (thisRender !== renderCount) return;
+    clearTimeout(skeletonTimer);
 
+    if (keepScroll) content.classList.remove('view-anim');
     content.innerHTML = html;
     content.removeAttribute('aria-busy');
     content.focus({ preventScroll: true });
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    window.scrollTo({ top: keepScroll ? scrollY : 0, behavior: 'instant' });
+    if (!keepScroll) playEnterAnimation(content, direction);
     refreshUnreadCount();
   } catch (error) {
     if (thisRender !== renderCount || error.stale) return;
+    clearTimeout(skeletonTimer);
+    content.classList.remove('view-leaving');
     content.removeAttribute('aria-busy');
 
     if (error.status === 401) {
@@ -410,16 +612,16 @@ async function go(view, params = {}) {
     content.innerHTML = `
       ${pageHeading('VAMOS TENTAR DE NOVO', 'Não foi possível carregar', 'Seus dados não foram alterados.', false)}
       <div class="error-message" role="alert">${esc(error.message)}</div>
-      <button class="button primary" data-action="refresh">Tentar novamente</button>`;
+      <button type="button" class="button primary" data-action="refresh">Tentar novamente</button>`;
+    playEnterAnimation(content, 'menu');
   }
 }
 
 
 // ---------------------------------------------------------------------------
-// Telas do cliente
+// Telas do Cliente (Moodboard 1 — E-commerce Cliente)
 // ---------------------------------------------------------------------------
 
-// A API não tem busca de itens, então buscamos algumas páginas e filtramos aqui.
 async function searchItems(term) {
   const all = [];
   let pagina = 0;
@@ -436,26 +638,70 @@ async function searchItems(term) {
 }
 
 function itemCard(item) {
+  const imgUrl = productImageUrl(item.produto);
   const action = item.elegivelParaDevolucao
-    ? `<button class="button primary full" data-action="select-item" data-id="${item.id}">Solicitar devolução <span aria-hidden="true">→</span></button>`
-    : '<p class="small-note">O prazo pode ter terminado ou já existir uma devolução. Consulte a aba Devoluções.</p>';
+    ? `<button type="button" class="button primary full" data-action="select-item" data-id="${item.id}">
+        Solicitar troca ou devolução
+      </button>`
+    : `<button type="button" class="button outline full" data-action="navigate" data-view="devolucoes">
+        Consultar solicitações
+      </button>`;
 
   return `
     <article class="card">
-      <div class="card-header">
-        <div class="item-icon">${icon('box')}</div>
-        <span class="tag ${item.elegivelParaDevolucao ? 'green' : 'gray'}">
-          ${item.elegivelParaDevolucao ? 'Disponível para devolução' : 'Indisponível'}
-        </span>
+      <div class="product-visual">
+        <img class="product-photo" src="${imgUrl}" alt="${esc(item.produto)}" loading="lazy">
+      </div>
+      <div class="order-card-row">
+        <div>
+          <div class="order-number">Pedido #${esc(item.numeroPedido)} · ${plural(item.quantidade, 'item', 'itens')}</div>
+          <h3 class="order-title">${esc(item.produto)}</h3>
+        </div>
+        <div class="price">${esc(formatMoney(item.valorPago))}</div>
       </div>
       <div>
-        <h3>${esc(item.produto)}</h3>
-        <p class="subtitle">Pedido ${esc(item.numeroPedido)} · ${plural(item.quantidade, 'unidade', 'unidades')}</p>
+        <span class="tag ${item.elegivelParaDevolucao ? 'green' : 'gray'}">
+          ${item.elegivelParaDevolucao ? 'Status: Entregue' : 'Prazo encerrado ou em devolução'}
+        </span>
       </div>
-      <div class="price">${esc(formatMoney(item.valorPago))}</div>
-      <div class="deadline">Prazo para solicitar: <strong>${esc(formatDate(item.dataLimiteDevolucao))}</strong></div>
+      <div class="deadline">Elegível para troca ou devolução até <strong>${esc(formatDate(item.dataLimiteDevolucao))}</strong></div>
       ${action}
     </article>`;
+}
+
+function clientQuickActionsBar(eligibleItem) {
+  const firstAction = eligibleItem
+    ? `data-action="select-item" data-id="${eligibleItem.id}"`
+    : `data-action="navigate" data-view="devolucoes"`;
+  return `
+    <section class="quick-actions-grid" aria-label="Ações rápidas do cliente">
+      <button type="button" class="quick-action-card" ${firstAction}>
+        <span class="quick-action-icon">${icon('returns')}</span>
+        <span class="quick-action-body">
+          <strong>Trocar produto</strong>
+          <span>Solicite troca por outro tamanho ou item</span>
+        </span>
+        <span class="quick-action-chevron">${icon('chevronRight')}</span>
+      </button>
+
+      <button type="button" class="quick-action-card" ${firstAction}>
+        <span class="quick-action-icon">${icon('refund')}</span>
+        <span class="quick-action-body">
+          <strong>Devolver produto</strong>
+          <span>Peça devolução e receba seu reembolso</span>
+        </span>
+        <span class="quick-action-chevron">${icon('chevronRight')}</span>
+      </button>
+
+      <button type="button" class="quick-action-card" data-action="navigate" data-view="devolucoes">
+        <span class="quick-action-icon">${icon('qr')}</span>
+        <span class="quick-action-body">
+          <strong>Gerar QR Code</strong>
+          <span>Acesse seu código para entrega na loja</span>
+        </span>
+        <span class="quick-action-chevron">${icon('chevronRight')}</span>
+      </button>
+    </section>`;
 }
 
 async function itemsView({ pagina = 0, busca = '' } = {}) {
@@ -464,27 +710,287 @@ async function itemsView({ pagina = 0, busca = '' } = {}) {
     : await api(`/itens?${toQueryString({ pagina, tamanho: 12 })}`);
   state.items = page.itens;
 
+  const eligibleItem = page.itens.find((i) => i.elegivelParaDevolucao);
+  const quickBar = !busca ? clientQuickActionsBar(eligibleItem) : '';
+
   const list = page.itens.length
     ? `<div class="cards">${page.itens.map(itemCard).join('')}</div>`
-    : emptyState('Nenhuma compra por aqui', 'Seus itens aparecerão aqui quando estiverem vinculados à sua conta.');
+    : emptyState('Nenhum pedido encontrado', 'Seus pedidos entregues aparecerão aqui para troca ou devolução.');
 
-  return pageHeading('SUAS COMPRAS', 'O que vamos devolver?', 'Escolha um produto e encontre uma loja para entregar.')
+  return pageHeading('E-COMMERCE CLIENTE', 'Meus pedidos', 'Selecione um item entregue para solicitar troca ou devolução.')
+    + quickBar
     + list
     + pagination(page);
 }
 
+// Etapa 1 de 3 — Solicitar troca ou devolução (Motivo)
+async function reasonView() {
+  const item = state.selectedItem;
+  if (!item) {
+    return emptyState('Escolha primeiro um produto', 'Volte aos seus pedidos para iniciar uma solicitação.',
+      navigateButton('itens', 'Ver meus pedidos'));
+  }
+
+  const motivoAtual = state.draft.motivo || 'PRODUTO_COM_DEFEITO';
+  const radios = Object.entries(MOTIVOS_DEVOLUCAO).map(([key, label]) => `
+    <label class="option-card ${motivoAtual === key ? 'selected' : ''}">
+      <span class="option-body">
+        <span class="option-title">${esc(label)}</span>
+      </span>
+      <input type="radio" name="motivo" value="${key}" ${motivoAtual === key ? 'checked' : ''} required>
+    </label>
+  `).join('');
+
+  return `
+    <div class="wizard-shell">
+      <div class="wizard-topbar">
+        ${backButton('itens', 'Meus pedidos')}
+        <span class="step-pill">Tela 2 · Motivo</span>
+      </div>
+      ${pageHeading('ETAPA 1 DE 3', 'Solicitar troca ou devolução', 'Conte para a gente o que aconteceu com o seu pedido.', false)}
+
+      <div class="wizard-grid">
+        <aside>
+          ${productSummaryBanner(item)}
+          <div class="section-block">
+            <h3>Como funciona</h3>
+            <p class="section-subtitle">O processo leva menos de 1 minuto:</p>
+            <div class="summary-kv-list">
+              <div class="summary-kv-row"><span>1. Motivo</span><strong>O que aconteceu</strong></div>
+              <div class="summary-kv-row"><span>2. Evidências</span><strong>Fotos e relato</strong></div>
+              <div class="summary-kv-row"><span>3. Solução</span><strong>Troca ou reembolso + QR</strong></div>
+            </div>
+          </div>
+        </aside>
+
+        <form id="reason-form" class="section-block">
+          <h3>Por que você deseja devolver?</h3>
+          <p class="section-subtitle">Selecione a opção que melhor descreve o problema.</p>
+          <div class="option-list cols-2">${radios}</div>
+          <div style="margin-top: 18px;">
+            <label for="reason-comment">Conte-nos mais (opcional)</label>
+            <textarea id="reason-comment" name="comentario" maxlength="500"
+                      placeholder="Ex.: O tamanho ficou diferente do esperado ou a peça apresentou defeito...">${esc(state.draft.comentario)}</textarea>
+          </div>
+          <div style="margin-top: 20px;">
+            <button type="submit" class="button primary full">Continuar</button>
+          </div>
+        </form>
+      </div>
+    </div>`;
+}
+
+// Etapa 2 de 3 — Enviar evidências (Fotos e Comentário)
+async function evidenceView() {
+  const item = state.selectedItem;
+  if (!item) {
+    return emptyState('Escolha primeiro um produto', 'Volte aos seus pedidos para iniciar uma solicitação.',
+      navigateButton('itens', 'Ver meus pedidos'));
+  }
+
+  const photos = state.draft.evidencias || [];
+  const photoGrid = photos.length
+    ? `<div class="photo-grid">
+        ${photos.map((src, idx) => `
+          <div class="photo-thumb">
+            <img src="${esc(src)}" alt="Evidência ${idx + 1}">
+            <button type="button" class="photo-remove" data-action="remove-photo" data-index="${idx}" aria-label="Remover foto ${idx + 1}">×</button>
+          </div>
+        `).join('')}
+      </div>`
+    : '';
+
+  return `
+    <div class="wizard-shell">
+      <div class="wizard-topbar">
+        ${backButton('motivo', 'Voltar ao motivo')}
+        <span class="step-pill">Tela 3 · Evidências</span>
+      </div>
+      ${pageHeading('ETAPA 2 DE 3', 'Enviar evidências', 'Mostre o estado do produto para facilitar a conferência na loja.', false)}
+
+      <div class="wizard-grid">
+        <aside>
+          ${productSummaryBanner(item)}
+          <div class="section-block">
+            <h3>Dica para agilizar</h3>
+            <p class="section-subtitle" style="margin-bottom: 0;">
+              Adicione fotos nítidas mostrando o produto, a etiqueta ou a embalagem. O atendente verá essas informações no balcão da loja.
+            </p>
+          </div>
+        </aside>
+
+        <form id="evidence-form" class="section-block">
+          <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" multiple hidden>
+
+          <h3>Registros do produto</h3>
+          <p class="section-subtitle">Você pode anexar até 3 fotos e complementar seu relato.</p>
+
+          <div class="evidence-actions">
+            <button type="button" class="evidence-row-btn" data-action="pick-photo">
+              <span class="option-icon">${icon('camera')}</span>
+              <span>Adicionar foto (${photos.length}/3)</span>
+              <span class="plus">+</span>
+            </button>
+
+            <button type="button" class="evidence-row-btn" data-action="video-info">
+              <span class="option-icon">${icon('video')}</span>
+              <span>Adicionar vídeo</span>
+              <span class="plus">+</span>
+            </button>
+
+            <button type="button" class="evidence-row-btn" data-action="focus-comment">
+              <span class="option-icon">${icon('comment')}</span>
+              <span>Adicionar comentário</span>
+              <span class="plus">+</span>
+            </button>
+          </div>
+
+          ${photoGrid}
+
+          <div>
+            <label for="evidence-comment">Comentário sobre o estado do produto</label>
+            <textarea id="evidence-comment" name="comentario" maxlength="500"
+                      placeholder="Descreva detalhes que ajudem o atendente na conferência...">${esc(state.draft.comentario)}</textarea>
+          </div>
+
+          <div style="margin-top: 20px;">
+            <button type="submit" class="button primary full">Continuar</button>
+          </div>
+        </form>
+      </div>
+    </div>`;
+}
+
+function storeOptionCard(loja, selectedId) {
+  const isSelected = Number(selectedId) === Number(loja.id);
+  const distance = loja.distanciaKm != null
+    ? ` · ${Number(loja.distanciaKm).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km`
+    : '';
+  const hours = loja.horarioFuncionamento ? `<span class="option-desc">${esc(loja.horarioFuncionamento)}</span>` : '';
+
+  return `
+    <label class="option-card ${isSelected ? 'selected' : ''}">
+      <span class="option-icon">${icon('pin')}</span>
+      <span class="option-body">
+        <span class="option-title">${esc(loja.nome)}${esc(distance)}</span>
+        <span class="option-desc">${esc(loja.endereco || 'Endereço não informado')}</span>
+        ${hours}
+      </span>
+      <input type="radio" name="lojaId" value="${loja.id}" ${isSelected ? 'checked' : ''} required>
+    </label>`;
+}
+
+// Etapa 3 de 3 — Como deseja resolver? (Troca/Reembolso + Loja + Gerar QR Code)
+async function storesView({ pagina = 0, busca = '', nearby } = {}) {
+  if (!state.selectedItem) {
+    return emptyState('Escolha primeiro um produto', 'Volte aos seus pedidos para iniciar uma solicitação.',
+      navigateButton('itens', 'Ver meus pedidos'));
+  }
+
+  const page = nearby
+    ? { itens: nearby, total: nearby.length, pagina: 0, tamanho: Math.max(1, nearby.length) }
+    : await api(`/lojas?${toQueryString({ pagina, tamanho: 10, busca })}`);
+  state.stores = page.itens;
+
+  if (!state.draft.lojaId && page.itens.length) {
+    state.draft.lojaId = page.itens[0].id;
+  }
+
+  const resolucaoAtual = state.draft.tipoResolucao || 'TROCA';
+  const solutionCards = Object.entries(TIPOS_RESOLUCAO).map(([key, info]) => `
+    <label class="option-card ${resolucaoAtual === key ? 'selected' : ''}">
+      <span class="option-icon">${icon(info.icon)}</span>
+      <span class="option-body">
+        <span class="option-title">${esc(info.title)}</span>
+        <span class="option-desc">${esc(info.desc)}</span>
+      </span>
+      <input type="radio" name="tipoResolucao" value="${key}" ${resolucaoAtual === key ? 'checked' : ''}>
+    </label>
+  `).join('');
+
+  const storeCards = page.itens.length
+    ? `<div class="option-list">${page.itens.map((l) => storeOptionCard(l, state.draft.lojaId)).join('')}</div>`
+    : emptyState('Nenhuma loja encontrada', 'Tente outro nome ou endereço.');
+
+  return `
+    <div class="wizard-shell">
+      <div class="wizard-topbar">
+        ${backButton('evidencias', 'Voltar às evidências')}
+        <span class="step-pill">Tela 4 · Solução</span>
+      </div>
+      ${pageHeading('ETAPA 3 DE 3', 'Como deseja resolver?', state.selectedItem.produto, false)}
+
+      <form id="resolution-form" class="wizard-two-cols">
+        <div>
+          <section class="section-block">
+            <h3>Escolha uma solução</h3>
+            <p class="section-subtitle">Defina como prefere concluir sua solicitação após a conferência.</p>
+            <div class="option-list">${solutionCards}</div>
+          </section>
+
+          <section class="section-block">
+            <h3>Como deseja devolver?</h3>
+            <div class="option-list">
+              <label class="option-card selected">
+                <span class="option-icon">${icon('store')}</span>
+                <span class="option-body">
+                  <span class="option-title">Levar a uma loja Maga Next</span>
+                  <span class="option-desc">Grátis e sem precisar imprimir etiqueta · QR Code imediato</span>
+                </span>
+                <input type="radio" name="metodoEntrega" value="LOJA" checked>
+              </label>
+
+              <div class="option-card disabled" aria-disabled="true">
+                <span class="option-icon">${icon('truck')}</span>
+                <span class="option-body">
+                  <span class="option-title">Coleta/entrega no endereço</span>
+                  <span class="option-desc">Indisponível no momento para este pedido</span>
+                </span>
+                <input type="radio" disabled>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div>
+          <section class="section-block">
+            <h3>Selecione a loja de entrega</h3>
+            <div class="store-actions">
+              <span class="small-note">Escolha a unidade onde você entregará o produto:</span>
+              <button type="button" class="button secondary" data-action="nearby">${icon('pin')} Lojas próximas</button>
+            </div>
+            ${storeCards}
+          </section>
+
+          <button type="submit" class="button primary full" data-busy-label="Gerando seu QR Code...">
+            Gerar QR Code
+          </button>
+        </div>
+      </form>
+    </div>`;
+}
+
 function returnCard(devolucao) {
+  const motivo = MOTIVOS_DEVOLUCAO[devolucao.motivo] || 'Solicitação registrada';
+  const resolucao = TIPOS_RESOLUCAO[devolucao.tipoResolucao]?.title || 'Devolução';
+
   return `
     <article class="card">
-      <div class="card-header">${statusTag(devolucao.status)}<span class="subtitle">#${devolucao.id}</span></div>
-      <div>
-        <h3>${esc(devolucao.produto)}</h3>
-        <p class="subtitle">Pedido ${esc(devolucao.numeroPedido)}</p>
+      <div class="order-card-row">
+        ${statusTag(devolucao.status)}
+        <span class="order-number">#${devolucao.id}</span>
       </div>
-      <div class="item-meta"><span class="muted">Loja</span><strong>${esc(devolucao.loja)}</strong></div>
+      <div>
+        <h3 class="order-title">${esc(devolucao.produto)}</h3>
+        <p class="order-number">Pedido #${esc(devolucao.numeroPedido)} · ${esc(resolucao)}</p>
+      </div>
+      <div class="summary-kv-list">
+        <div class="summary-kv-row"><span>Motivo</span><strong>${esc(motivo)}</strong></div>
+        <div class="summary-kv-row"><span>Loja</span><strong>${esc(devolucao.loja)}</strong></div>
+      </div>
       <div class="deadline">Solicitada em ${esc(formatDate(devolucao.criadaEm))}</div>
-      <button class="button secondary full" data-action="detail" data-id="${devolucao.id}">
-        Acompanhar devolução ${icon('returns')}
+      <button type="button" class="button secondary full" data-action="detail" data-id="${devolucao.id}">
+        Ver QR Code e detalhes
       </button>
     </article>`;
 }
@@ -495,85 +1001,16 @@ async function returnsView({ pagina = 0, status = '' } = {}) {
 
   const list = devolucoes.length
     ? `<div class="cards">${devolucoes.map(returnCard).join('')}</div>`
-    : emptyState('Nenhuma devolução encontrada', 'Altere o filtro ou solicite a devolução de uma compra.',
-        navigateButton('itens', 'Ver compras'));
+    : emptyState('Nenhuma solicitação encontrada', 'Altere o filtro ou escolha um pedido para iniciar uma troca ou devolução.',
+        navigateButton('itens', 'Ver meus pedidos'));
 
-  return pageHeading('PASSO A PASSO', 'Suas devoluções', 'Acompanhe o caminho de cada produto.')
+  return pageHeading('ACOMPANHAMENTO', 'Trocas e devoluções', 'Consulte seu QR Code e acompanhe cada etapa.')
     + `<div class="chips" role="group" aria-label="Filtrar por status">${chips(STATUS_NAMES, status, 'Todas')}</div>`
     + list
     + pagination(page);
 }
 
-function storeCard(loja) {
-  const distance = loja.distanciaKm != null
-    ? `<p>${Number(loja.distanciaKm).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km de distância</p>`
-    : '';
-  const hours = loja.horarioFuncionamento ? `<p>${esc(loja.horarioFuncionamento)}</p>` : '';
-
-  return `
-    <article class="card store-card">
-      <div class="item-icon">${icon('pin')}</div>
-      <div class="store-text">
-        <h3>${esc(loja.nome)}</h3>
-        <p>${esc(loja.endereco || 'Endereço não informado')}</p>
-        ${distance}
-        ${hours}
-      </div>
-      <button class="button outline" data-action="create-return" data-id="${loja.id}">Escolher loja</button>
-    </article>`;
-}
-
-async function storesView({ pagina = 0, busca = '', nearby } = {}) {
-  if (!state.selectedItem) {
-    return emptyState('Escolha primeiro um produto', 'Volte às compras para iniciar uma devolução.',
-      navigateButton('itens', 'Ver compras'));
-  }
-
-  const page = nearby
-    ? { itens: nearby, total: nearby.length, pagina: 0, tamanho: Math.max(1, nearby.length) }
-    : await api(`/lojas?${toQueryString({ pagina, tamanho: 10, busca })}`);
-  state.stores = page.itens;
-
-  const list = page.itens.length
-    ? `<div class="store-list">${page.itens.map(storeCard).join('')}</div>`
-    : emptyState('Nenhuma loja encontrada', 'Tente outro nome ou endereço.');
-
-  return backButton('itens', 'Voltar às compras')
-    + pageHeading('ESCOLHA ONDE ENTREGAR', 'Uma loja perto de você', state.selectedItem.produto, false)
-    + `
-      <form class="search-form" id="store-search">
-        <input name="busca" aria-label="Nome ou endereço da loja" value="${esc(busca)}" maxlength="120"
-               placeholder="Nome da loja, bairro ou endereço">
-        <button class="button primary">Buscar</button>
-      </form>
-      <div class="store-actions">
-        <p class="muted">Ou encontre lojas num raio de 20 km.</p>
-        <button class="button secondary" data-action="nearby">${icon('pin')} Usar minha localização</button>
-      </div>
-      <div class="notice">A devolução inclui todas as unidades deste item. Leve o produto à loja escolhida e apresente o QR.</div>`
-    + list
-    + (nearby ? '' : pagination(page));
-}
-
-function infoRow(label, value) {
-  return `<div><dt>${label}</dt><dd>${value}</dd></div>`;
-}
-
-function qrSection(detail, qr, beforeDelivery) {
-  if (qr.qrCodeImagemBase64) {
-    return `
-      <img src="data:image/png;base64,${esc(qr.qrCodeImagemBase64)}" alt="QR para entregar esta devolução na loja" width="230" height="230">
-      <p>Mostre este QR ao funcionário da loja.<br>Válido até ${esc(formatDateTime(qr.qrCodeExpiraEm))}.</p>
-      <p class="countdown" data-expires="${esc(qr.qrCodeExpiraEm)}"></p>`;
-  }
-
-  let message = 'O QR não é mais necessário. Acompanhe as próximas etapas abaixo.';
-  if (beforeDelivery) message = 'O QR expirou. Você pode tentar renová-lo dentro do prazo da compra.';
-  else if (detail.status === 'CANCELADA') message = 'Esta solicitação foi cancelada.';
-
-  return `<div class="item-icon">${icon(beforeDelivery ? 'qr' : 'check')}</div><p>${message}</p>`;
-}
-
+// Tela 5 do Moodboard 1 — "Seu QR Code está pronto!" + Detalhes da solicitação
 async function detailView({ id, histPagina = 0 } = {}) {
   const [detail, qr, history] = await Promise.all([
     api(`/devolucoes/${id}/acompanhamento`),
@@ -582,27 +1019,65 @@ async function detailView({ id, histPagina = 0 } = {}) {
   ]);
   detail.status = effectiveStatus(detail);
   const beforeDelivery = ['AGUARDANDO_ESCANEAMENTO', 'QR_EXPIRADO'].includes(detail.status);
+  const hasActiveQr = Boolean(qr.qrCodeImagemBase64);
 
-  const info = [
-    infoRow('Loja de entrega', `<strong>${esc(detail.loja)}</strong><br>${esc(detail.enderecoLoja || 'Endereço não informado')}`),
-    infoRow('Quantidade', plural(detail.quantidade, 'unidade', 'unidades')),
-    infoRow('Solicitada em', esc(formatDateTime(detail.criadaEm))),
-    detail.recebidaEm ? infoRow('Recebida na loja', esc(formatDateTime(detail.recebidaEm))) : '',
-    detail.destino ? infoRow('Destino do produto', esc(DESTINATIONS[detail.destino] || detail.destino)) : '',
-    detail.concluidaEm ? infoRow('Concluída em', esc(formatDateTime(detail.concluidaEm))) : '',
-  ].join('');
+  const solucaoLabel = TIPOS_RESOLUCAO[detail.tipoResolucao]?.title || 'Troca ou Reembolso';
+  const motivoLabel = MOTIVOS_DEVOLUCAO[detail.motivo] || 'Não especificado';
+  const reprovacaoLabel = detail.motivoReprovacao
+    ? (MOTIVOS_REPROVACAO[detail.motivoReprovacao] || detail.motivoReprovacao)
+    : null;
+
+  let qrBox = '';
+  if (hasActiveQr) {
+    qrBox = `
+      <section class="card qr-showcase">
+        <h2>Seu QR Code está pronto!</h2>
+        <div class="qr-frame">
+          <img src="data:image/png;base64,${esc(qr.qrCodeImagemBase64)}" alt="QR Code da devolução #${id}" width="210" height="210">
+        </div>
+        <div class="qr-order-meta">
+          <strong>Pedido #${esc(detail.numeroPedido)}</strong>
+          <span>${esc(detail.produto)}</span>
+        </div>
+        <p class="muted" style="font-size: 13px;">Apresente este código ao atendente da loja.</p>
+        <div class="qr-validity-pill">⏱ Código válido por 24 horas</div>
+        <p class="countdown" data-expires="${esc(qr.qrCodeExpiraEm)}"></p>
+        <div style="margin-top: 14px; width: 100%;">
+          <button type="button" class="button primary full" data-action="scroll-details">Ver detalhes</button>
+        </div>
+      </section>`;
+  } else {
+    let statusMessage = 'O produto já foi recebido na loja. Acompanhe o andamento ao lado.';
+    if (beforeDelivery) statusMessage = 'O QR Code expirou. Você pode renová-lo gratuitamente dentro do prazo.';
+    else if (detail.status === 'CANCELADA') statusMessage = 'Esta solicitação foi cancelada.';
+    else if (detail.status === 'REPROVADA') statusMessage = 'A devolução não foi aprovada na conferência da loja.';
+
+    qrBox = `
+      <section class="card qr-showcase">
+        <div class="item-icon" style="margin: 0 auto;">${icon(beforeDelivery ? 'qr' : 'check')}</div>
+        <h2>${beforeDelivery ? 'QR Code expirado' : 'Status do atendimento'}</h2>
+        <p class="muted" style="font-size: 13px;">${esc(statusMessage)}</p>
+      </section>`;
+  }
 
   let actions = '';
   if (beforeDelivery) {
-    const renew = qr.qrCodeImagemBase64
+    const renew = hasActiveQr
       ? ''
-      : `<button class="button primary" data-action="renew" data-id="${id}">${icon('refresh')} Renovar QR</button>`;
+      : `<button type="button" class="button primary" data-action="renew" data-id="${id}">${icon('refresh')} Renovar QR Code</button>`;
     actions = `
       <div class="detail-actions">
         ${renew}
-        <button class="button danger" data-action="cancel" data-id="${id}">Cancelar solicitação</button>
+        <button type="button" class="button danger-outline" data-action="cancel" data-id="${id}">Cancelar solicitação</button>
       </div>`;
   }
+
+  const rejectionNotice = detail.status === 'REPROVADA'
+    ? `<div class="error-message" style="margin-top: 10px;">
+        <strong>Devolução não aprovada na conferência:</strong> ${esc(reprovacaoLabel || 'Critérios não atendidos.')}
+        ${detail.observacaoConferencia ? `<br><span>Observação da loja: ${esc(detail.observacaoConferencia)}</span>` : ''}
+      </div>`
+    : '';
 
   const timeline = history.itens.length
     ? `<ol class="timeline">${history.itens.map((e) => `
@@ -610,24 +1085,33 @@ async function detailView({ id, histPagina = 0 } = {}) {
       </ol>`
     : '<p class="muted">Ainda não há eventos registrados.</p>';
 
-  return backButton('devolucoes', 'Todas as devoluções')
-    + pageHeading(`DEVOLUÇÃO #${id}`, detail.produto, `Pedido ${detail.numeroPedido}`, false)
+  return backButton('devolucoes', 'Todas as solicitações')
+    + pageHeading(`SOLICITAÇÃO #${id}`, detail.produto, `Pedido #${detail.numeroPedido}`, false)
     + progressStepper(detail.status)
+    + rejectionNotice
     + `
       <div class="detail-grid">
-        <section class="card">
-          ${statusTag(detail.status)}
-          <dl class="detail-info">${info}</dl>
+        <section id="request-details-card" class="card">
+          <div class="order-card-row">
+            <h3>Detalhes da solicitação</h3>
+            ${statusTag(detail.status)}
+          </div>
+          <div class="summary-kv-list">
+            <div class="summary-kv-row"><span>Solução</span><strong>${esc(solucaoLabel)}</strong></div>
+            <div class="summary-kv-row"><span>Devolução</span><strong>Levar a uma loja Maga Next</strong></div>
+            <div class="summary-kv-row"><span>Loja de entrega</span><strong>${esc(detail.loja)}<br><small class="muted">${esc(detail.enderecoLoja || '')}</small></strong></div>
+            <div class="summary-kv-row"><span>Motivo informado</span><strong>${esc(motivoLabel)}</strong></div>
+            <div class="summary-kv-row"><span>Quantidade</span><strong>${plural(detail.quantidade, 'unidade', 'unidades')}</strong></div>
+            <div class="summary-kv-row"><span>Solicitada em</span><strong>${esc(formatDateTime(detail.criadaEm))}</strong></div>
+            ${detail.recebidaEm ? `<div class="summary-kv-row"><span>Recebida na loja</span><strong>${esc(formatDateTime(detail.recebidaEm))}</strong></div>` : ''}
+            ${detail.destino ? `<div class="summary-kv-row"><span>Destinação na loja</span><strong>${esc(DESTINATIONS[detail.destino] || detail.destino)}</strong></div>` : ''}
+          </div>
+          ${actions}
         </section>
-        <section class="card qr-card">
-          <h3>${beforeDelivery ? 'Seu QR de entrega' : 'Recebimento'}</h3>
-          ${qrSection(detail, qr, beforeDelivery)}
-        </section>
-      </div>`
-    + actions
-    + `
+        ${qrBox}
+      </div>
       <section class="timeline-section">
-        <h2 class="section-title">HISTÓRICO DA DEVOLUÇÃO</h2>
+        <h2 class="section-title">HISTÓRICO DA SOLICITAÇÃO</h2>
         ${timeline}
         ${pagination(history, 'history-page')}
       </section>`;
@@ -640,18 +1124,18 @@ function notificationCard(n) {
     : '';
   const markRead = isRead
     ? ''
-    : `<button class="text-button" data-action="read" data-id="${n.id}">Marcar como lida</button>`;
+    : `<button type="button" class="text-button" data-action="read" data-id="${n.id}">Marcar como lida</button>`;
 
   return `
     <article class="card notification-card ${isRead ? '' : 'unread'}">
       <div class="notification-top">
-        <span class="tag ${isRead ? 'gray' : ''}">${isRead ? 'Lida' : 'Nova'}</span>
+        <span class="tag ${isRead ? 'gray' : ''}">${isRead ? 'Lida' : 'Novo aviso'}</span>
         <time>${esc(formatDateTime(n.criadaEm))}</time>
       </div>
       <p>${esc(n.mensagem)}</p>
       ${deadline}
       <div class="notification-actions">
-        <button class="button secondary" data-action="detail" data-id="${n.solicitacaoId}">Ver devolução</button>
+        <button type="button" class="button secondary" data-action="detail" data-id="${n.solicitacaoId}">Ver solicitação</button>
         ${markRead}
       </div>
     </article>`;
@@ -668,9 +1152,9 @@ async function notificationsView({ pagina = 0, naoLidas = false } = {}) {
 
   const list = page.itens.length
     ? `<div class="notification-list">${page.itens.map(notificationCard).join('')}</div>`
-    : emptyState('Tudo em dia', 'Quando houver uma atualização, você poderá acompanhá-la aqui.');
+    : emptyState('Tudo em dia', 'Quando houver uma atualização na sua troca ou devolução, ela aparecerá aqui.');
 
-  return pageHeading('FIQUE POR DENTRO', 'Seus avisos', 'Atualizações da devolução e lembretes do QR.')
+  return pageHeading('NOTIFICAÇÕES', 'Seus avisos', 'Atualizações de conferência e lembretes de prazo do QR Code.')
     + filter
     + list
     + pagination(page);
@@ -681,31 +1165,30 @@ async function accountView() {
   const isClient = user.perfil === 'CLIENTE';
   const initial = esc((user.nome || '?').slice(0, 1).toUpperCase());
 
-  let body = '<p class="muted">Seu acesso permite acompanhar e receber devoluções vinculadas à sua loja.</p>';
+  let body = '<p class="muted">Perfil habilitado para conferência física de produtos, leitura de QR Code e destinação socioambiental ou estoque.</p>';
   if (isClient) {
     const prefs = await api('/notificacoes/preferencias');
     body = `
       <form id="preferences-form">
         <label class="preference">
-          <div>Atualizações da devolução<p>Recebimento, mudança de destino e outras etapas.</p></div>
+          <div>Atualizações da solicitação<p>Recebimento na loja, resultado da conferência e destinação.</p></div>
           <input name="atualizacoes" type="checkbox" ${prefs.atualizacoes ? 'checked' : ''}>
         </label>
         <label class="preference">
-          <div>Lembretes de QR<p>Um aviso aqui no site quando o QR estiver perto de vencer.</p></div>
+          <div>Lembretes de validade do QR Code<p>Aviso quando o QR Code estiver próximo de expirar.</p></div>
           <input name="lembretesQr" type="checkbox" ${prefs.lembretesQr ? 'checked' : ''}>
         </label>
         <button class="button primary full" type="submit">Salvar preferências</button>
-      </form>
-      <p class="small-note">Os avisos ficam na aba Avisos. Não são enviados por e-mail ou por notificação do celular.</p>`;
+      </form>`;
   }
 
-  return pageHeading('DO SEU JEITO', 'Sua conta', 'Confira seu acesso e personalize os avisos.', false) + `
+  return pageHeading('PERFIL DE ACESSO', 'Sua conta', 'Confira seus dados e preferências no Maga Next.', false) + `
     <section class="card account-card">
       <div class="account-intro">
         <div class="account-avatar" aria-hidden="true">${initial}</div>
         <div>
           <h3>${esc(user.nome)}</h3>
-          <p>${isClient ? 'Cliente' : `Funcionário · ${esc(user.loja)}`}</p>
+          <p class="muted">${isClient ? 'Cliente E-commerce' : `Atendente de Loja · ${esc(user.loja)}`}</p>
         </div>
       </div>
       ${body}
@@ -714,43 +1197,80 @@ async function accountView() {
 
 
 // ---------------------------------------------------------------------------
-// Telas do funcionário
+// Telas do Funcionário (Moodboard 2 — Operação Loja em Azul-marinho)
 // ---------------------------------------------------------------------------
 
 function waitingTime(minutes) {
-  return minutes < 60 ? `${minutes} min de espera` : `${Math.floor(minutes / 60)} h de espera`;
+  if (minutes == null) return 'Recém-recebido';
+  return minutes < 60 ? `${minutes} min aguardando` : `${Math.floor(minutes / 60)} h aguardando`;
 }
 
 function queueCard(d) {
-  const received = d.recebidaEm
-    ? `Recebida em ${esc(formatDateTime(d.recebidaEm))}<br>${waitingTime(d.minutosDesdeRecebimento)}`
-    : 'Recebimento sem data registrada';
+  const motivo = MOTIVOS_DEVOLUCAO[d.motivo] || 'Devolução em loja';
+  const resolucao = TIPOS_RESOLUCAO[d.tipoResolucao]?.title || 'Troca/Devolução';
+  const imgUrl = productImageUrl(d.produto);
 
-  const footer = d.status === 'EM_ANALISE'
-    ? `
-      <form class="queue-actions" data-destination="${d.id}">
-        <label class="sr-only" for="dest-${d.id}">Destino da devolução #${d.id}</label>
-        <select id="dest-${d.id}" name="destino" required>${selectOptions(DESTINATIONS, '', 'Escolha o destino')}</select>
-        <button class="button primary">Definir</button>
-      </form>`
-    : `<p class="small-note">Destino: <strong>${esc(DESTINATIONS[d.destino] || d.destino)}</strong><br>Aguardando processamento.</p>`;
+  const action = d.status === 'EM_ANALISE'
+    ? `<button type="button" class="button primary full" data-action="inspect" data-id="${d.id}">
+        Conferir produto
+      </button>`
+    : `<p class="small-note">Destinação registrada: <strong>${esc(DESTINATIONS[d.destino] || d.destino)}</strong></p>`;
 
   return `
     <article class="card">
-      <div class="card-header">${statusTag(d.status)}<span class="subtitle">#${d.id}</span></div>
-      <div>
-        <h3>${esc(d.produto)}</h3>
-        <p class="subtitle">Pedido ${esc(d.numeroPedido)} · ${d.quantidade} un.</p>
+      <div class="order-card-row">
+        <span class="tag ${d.status === 'EM_ANALISE' ? 'green' : 'purple'}">
+          ${d.status === 'EM_ANALISE' ? 'Aguardando conferência' : 'Destino definido'}
+        </span>
+        <span class="order-number">Pedido #${esc(d.numeroPedido)}</span>
       </div>
-      <p class="queue-time">${received}</p>
-      ${footer}
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <div class="product-thumb">
+          <img src="${imgUrl}" alt="${esc(d.produto)}" loading="lazy">
+        </div>
+        <div style="flex: 1; min-width: 0;">
+          <h3 class="order-title">${esc(d.produto)}</h3>
+          <p class="order-number">${esc(motivo)} · ${esc(resolucao)}</p>
+          <p class="order-number">${esc(waitingTime(d.minutosDesdeRecebimento))}</p>
+        </div>
+        <div class="category-badge" aria-hidden="true">${icon(productGlyph(d.produto))}</div>
+      </div>
+      ${action}
     </article>`;
 }
 
+// Tela 1 do Moodboard 2 — Pedidos para conferência
 async function queueView({ pagina = 0, status = '', destino = '', minimoHoras = '' } = {}) {
   const page = await api(`/funcionario/devolucoes?${toQueryString({ pagina, tamanho: 12, status, destino, minimoHoras })}`);
 
-  const stageOptions = { EM_ANALISE: 'Em análise', DESTINO_PENDENTE: 'Destino pendente' };
+  const nextToInspect = page.itens.find((d) => d.status === 'EM_ANALISE');
+  const featured = nextToInspect ? `
+    <section class="featured-queue-card">
+      <div class="product-visual">
+        <span class="tag green featured-status-pill">Aguardando conferência</span>
+        <img class="product-photo" src="${productImageUrl(nextToInspect.produto)}" alt="${esc(nextToInspect.produto)}">
+      </div>
+      <div class="featured-queue-body">
+        <div class="order-card-row">
+          <div>
+            <span class="order-number">Pedido #${esc(nextToInspect.numeroPedido)}</span>
+            <h2 style="font-size: 22px; margin-top: 2px;">${esc(nextToInspect.produto)}</h2>
+            <p class="muted" style="font-size: 13px; margin-top: 2px;">Aguardando de devolução · ${esc(MOTIVOS_DEVOLUCAO[nextToInspect.motivo] || 'Verificação física')}</p>
+          </div>
+          <div class="category-badge">${icon(productGlyph(nextToInspect.produto))}</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 6px;">
+          <button type="button" class="button primary full" data-action="inspect" data-id="${nextToInspect.id}">
+            ${icon('qr')} Escanear QR Code / Conferir
+          </button>
+          <button type="button" class="button secondary full" data-action="navigate" data-view="receber">
+            Ler outro QR Code
+          </button>
+        </div>
+      </div>
+    </section>` : '';
+
+  const stageOptions = { EM_ANALISE: 'Aguardando conferência', DESTINO_PENDENTE: 'Destino definido' };
   const ageOptions = { 2: 'Mais de 2 horas', 24: 'Mais de 24 horas', 48: 'Mais de 48 horas' };
 
   const filters = `
@@ -760,62 +1280,368 @@ async function queueView({ pagina = 0, status = '', destino = '', minimoHoras = 
         <select id="queue-status" name="status">${selectOptions(stageOptions, status)}</select>
       </div>
       <div class="field">
-        <label for="queue-dest">Destino</label>
+        <label for="queue-dest">Destinação</label>
         <select id="queue-dest" name="destino">${selectOptions(DESTINATIONS, destino)}</select>
       </div>
       <div class="field">
-        <label for="queue-age">Tempo de espera</label>
+        <label for="queue-age">Espera</label>
         <select id="queue-age" name="minimoHoras">${selectOptions(ageOptions, String(minimoHoras), 'Qualquer tempo')}</select>
       </div>
-      <button class="button secondary">Filtrar</button>
+      <button type="submit" class="button secondary">Filtrar</button>
     </form>`;
 
   const list = page.itens.length
     ? `<div class="cards">${page.itens.map(queueCard).join('')}</div>`
-    : emptyState('Fila em dia', 'Não há devoluções para os filtros selecionados.',
-        navigateButton('receber', 'Receber um produto'));
+    : emptyState('Nenhum pedido aguardando', 'Escaneie um QR Code no balcão para iniciar uma nova conferência.',
+        navigateButton('receber', 'Escanear QR Code'));
 
-  return pageHeading(state.user.loja || 'SUA LOJA', 'Fila de devoluções', 'As entregas mais antigas aparecem primeiro.')
+  return pageHeading(state.user.loja || 'OPERAÇÃO DE LOJA', 'Pedidos para conferência', 'Acesse os pedidos que aguardam conferência na loja.')
+    + featured
     + filters
     + list
     + pagination(page);
 }
 
+// Tela 2 do Moodboard 2 — Conferir produto
+async function inspectView({ id } = {}) {
+  const targetId = Number(id || state.inspection.id);
+  const item = await api(`/funcionario/devolucoes/${targetId}`);
+
+  if (state.inspection.id !== item.id) {
+    state.inspection = {
+      ...blankInspection(),
+      id: item.id,
+      item,
+      checked: item.itensConferidos?.length ? [...item.itensConferidos] : Object.keys(CHECKLIST_ITEMS),
+    };
+  } else {
+    state.inspection.item = item;
+  }
+
+  const motivo = MOTIVOS_DEVOLUCAO[item.motivo] || item.motivo || 'Tamanho diferente do esperado';
+  const resolucao = TIPOS_RESOLUCAO[item.tipoResolucao]?.title || 'Troca ou Reembolso';
+  const checkedSet = new Set(state.inspection.checked);
+
+  const checklistHtml = Object.entries(CHECKLIST_ITEMS).map(([key, label]) => {
+    const isChecked = checkedSet.has(key);
+    return `
+      <label class="check-item">
+        <input type="checkbox" name="itemConferencia" value="${key}" ${isChecked ? 'checked' : ''}>
+        <span class="check-item-title">${esc(label)}</span>
+        <span class="check-hint">${isChecked ? 'Validado' : 'Toque p/ validar'}</span>
+      </label>`;
+  }).join('');
+
+  const evidenceGallery = item.evidencias?.length
+    ? `<div style="margin-top: 14px;">
+        <span class="order-number">Fotos enviadas pelo cliente:</span>
+        <div class="photo-grid">
+          ${item.evidencias.map((src, i) => `<div class="photo-thumb"><img src="${esc(src)}" alt="Evidência ${i + 1}"></div>`).join('')}
+        </div>
+      </div>`
+    : '';
+
+  return `
+    <div class="wizard-shell">
+      <div class="wizard-topbar">
+        ${backButton('fila', 'Pedidos para conferência')}
+        <span class="step-pill">Etapa 1 de 2 · Conferência</span>
+      </div>
+      ${pageHeading('CONFERIR PRODUTO', 'Conferir produto', 'Verifique os itens recebidos antes de registrar a decisão.', false)}
+
+      <div class="wizard-two-cols">
+        <div>
+          <div class="product-summary-card received-card">
+            <div class="product-thumb">
+              <img src="${productImageUrl(item.produto)}" alt="${esc(item.produto)}">
+            </div>
+            <div class="product-summary-text">
+              <span class="eyebrow">PRODUTO RECEBIDO</span>
+              <h3>${esc(item.produto)}</h3>
+              <p class="order-link">Pedido #${esc(item.numeroPedido)}</p>
+            </div>
+            <div class="category-badge">${icon(productGlyph(item.produto))}</div>
+          </div>
+
+          <section class="section-block">
+            <h3>Detalhes da solicitação</h3>
+            <div class="request-detail-list">
+              <div class="request-detail-item">
+                <span class="detail-mini-icon">${icon('refresh')}</span>
+                <div>
+                  <span class="detail-mini-label">MOTIVO DA DEVOLUÇÃO</span>
+                  <strong>${esc(item.comentario || motivo)}</strong>
+                </div>
+              </div>
+              <div class="request-detail-item">
+                <span class="detail-mini-icon">${icon('calendar')}</span>
+                <div>
+                  <span class="detail-mini-label">DATA DA SOLICITAÇÃO</span>
+                  <strong>${esc(formatDate(item.criadaEm || item.recebidaEm))}</strong>
+                </div>
+              </div>
+              <div class="request-detail-item">
+                <span class="detail-mini-icon">${icon('returns')}</span>
+                <div>
+                  <span class="detail-mini-label">SOLUÇÃO ESCOLHIDA PELO CLIENTE</span>
+                  <strong>${esc(resolucao)}</strong>
+                </div>
+              </div>
+            </div>
+            ${evidenceGallery}
+          </section>
+        </div>
+
+        <form id="inspect-form" class="section-block">
+          <h3>Conferência</h3>
+          <p class="section-subtitle">Indique o status de cada etapa da conferência física:</p>
+          <div class="checklist-group">${checklistHtml}</div>
+          <div style="margin-top: 20px;">
+            <button type="submit" class="button primary full">
+              ${icon('checkCircle')} Concluir conferência
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>`;
+}
+
+// Telas 3, 4 e 5 do Moodboard 2 — Resultado da conferência (Aprovar vs Reprovar + Parceiros Socioambientais)
+async function resultView({ id } = {}) {
+  const targetId = Number(id || state.inspection.id);
+  if (!state.inspection.item || state.inspection.id !== targetId) {
+    state.inspection.item = await api(`/funcionario/devolucoes/${targetId}`);
+    state.inspection.id = targetId;
+  }
+
+  const item = state.inspection.item;
+  const isApproved = state.inspection.decisao !== 'REPROVAR';
+  const destinoAtual = state.inspection.destino || 'ESTOQUE';
+  const ongAtual = state.inspection.ongParceira || 'ECOSMAG';
+  const motivoReprovAtual = state.inspection.motivoReprovacao || 'SINAIS_DE_USO';
+
+  const ongSubSelector = destinoAtual === 'DOACAO_ONG' ? `
+    <div class="ong-subpanel">
+      <span class="ong-subtitle">Parceiros socioambientais</span>
+      <div class="option-list">
+        ${Object.values(ONGS_PARCEIRAS).map((ong) => `
+          <label class="option-card ong-card ${ongAtual === ong.id ? 'selected' : ''}">
+            <span class="option-icon ong-icon">${icon(ong.icon)}</span>
+            <span class="option-body">
+              <span class="option-title">${esc(ong.title)}</span>
+              <span class="option-desc">${esc(ong.desc)}</span>
+            </span>
+            <input type="radio" name="ongParceira" value="${ong.id}" ${ongAtual === ong.id ? 'checked' : ''}>
+          </label>
+        `).join('')}
+      </div>
+    </div>` : '';
+
+  const decisionPanel = isApproved ? `
+    <section class="result-panel approved">
+      <div class="result-banner">
+        <div class="result-banner-icon">${icon('checkCircle')}</div>
+        <div>
+          <h3>Devolução aprovada</h3>
+          <p class="muted" style="font-size: 12px;">Produto verificado e liberado para destinação</p>
+        </div>
+      </div>
+
+      <h3 style="margin-bottom: 10px;">Destinação do produto</h3>
+      <div class="option-list">
+        <label class="option-card ${destinoAtual === 'ESTOQUE' ? 'selected' : ''}">
+          <span class="option-icon">${icon('box')}</span>
+          <span class="option-body">
+            <span class="option-title">Retornar ao estoque</span>
+            <span class="option-desc">Produto íntegro e pronto para nova venda na loja</span>
+          </span>
+          <input type="radio" name="destino" value="ESTOQUE" ${destinoAtual === 'ESTOQUE' ? 'checked' : ''}>
+        </label>
+
+        <label class="option-card ${destinoAtual === 'REPARO' ? 'selected' : ''}">
+          <span class="option-icon">${icon('wrench')}</span>
+          <span class="option-body">
+            <span class="option-title">Encaminhar para reparo</span>
+            <span class="option-desc">Assistência técnica e recondicionamento</span>
+          </span>
+          <input type="radio" name="destino" value="REPARO" ${destinoAtual === 'REPARO' ? 'checked' : ''}>
+        </label>
+
+        <label class="option-card ${destinoAtual === 'DOACAO_ONG' ? 'selected' : ''}">
+          <span class="option-icon">${icon('leaf')}</span>
+          <span class="option-body">
+            <span class="option-title">Destinação socioambiental</span>
+            <span class="option-desc">Doação e reutilização com parceiros socioambientais</span>
+          </span>
+          <input type="radio" name="destino" value="DOACAO_ONG" ${destinoAtual === 'DOACAO_ONG' ? 'checked' : ''}>
+        </label>
+      </div>
+
+      ${ongSubSelector}
+
+      <div style="margin-top: 20px;">
+        <button type="submit" class="button primary full">
+          ${icon('check')} Confirmar destinação
+        </button>
+      </div>
+    </section>` : `
+    <section class="result-panel rejected">
+      <div class="result-banner">
+        <div class="result-banner-icon">${icon('closeCircle')}</div>
+        <div>
+          <h3 style="color: var(--pink);">Devolução não aprovada</h3>
+          <p class="muted" style="font-size: 12px;">O cliente receberá a orientação pelo aplicativo</p>
+        </div>
+      </div>
+
+      <h3 style="margin-bottom: 10px;">Informe o motivo da reprovação</h3>
+      <div class="option-list cols-2">
+        ${Object.entries(MOTIVOS_REPROVACAO).map(([key, label]) => `
+          <label class="option-card ${motivoReprovAtual === key ? 'selected' : ''}">
+            <span class="option-body"><span class="option-title">${esc(label)}</span></span>
+            <input type="radio" name="motivoReprovacao" value="${key}" ${motivoReprovAtual === key ? 'checked' : ''}>
+          </label>
+        `).join('')}
+      </div>
+
+      <div style="margin-top: 16px;">
+        <label for="reject-notes">Observação para o registro (obrigatória se escolher "Outro")</label>
+        <textarea id="reject-notes" name="observacao" maxlength="500"
+                  placeholder="Descreva o que foi constatado na conferência...">${esc(state.inspection.observacao)}</textarea>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <button type="submit" class="button pink full">
+          ${icon('flag')} Finalizar atendimento
+        </button>
+      </div>
+    </section>`;
+
+  return `
+    <div class="wizard-shell">
+      <div class="wizard-topbar">
+        <button type="button" class="back-button" data-action="inspect" data-id="${item.id}">
+          ${icon('arrow')} Voltar à conferência
+        </button>
+        <span class="step-pill">Etapa 2 de 2 · Decisão</span>
+      </div>
+      ${pageHeading('RESULTADO DA CONFERÊNCIA', 'Resultado da conferência', 'Registre a decisão final para este atendimento.', false)}
+
+      <div class="wizard-grid">
+        <aside>
+          <div class="product-summary-card received-card">
+            <div class="product-thumb">
+              <img src="${productImageUrl(item.produto)}" alt="${esc(item.produto)}">
+            </div>
+            <div class="product-summary-text">
+              <span class="eyebrow">PRODUTO RECEBIDO</span>
+              <h3>${esc(item.produto)}</h3>
+              <p class="order-link">Pedido #${esc(item.numeroPedido)}</p>
+            </div>
+            <div class="category-badge">${icon(productGlyph(item.produto))}</div>
+          </div>
+
+          <section class="section-block">
+            <h3>O produto atende aos critérios de troca/devolução?</h3>
+            <p class="section-subtitle">Indique o status final da conferência física:</p>
+            <div class="status-pills-preview">
+              <span class="tag green">Aprovado</span>
+              <span class="tag pink">Reprovado</span>
+            </div>
+            <div class="option-list">
+              <button type="button" class="decision-card approve ${isApproved ? 'active' : ''}" data-action="set-decision" data-value="APROVAR">
+                <span class="decision-dot">${icon('check')}</span>
+                <span class="decision-title">SIM – Aprovar devolução</span>
+              </button>
+
+              <button type="button" class="decision-card reject ${!isApproved ? 'active' : ''}" data-action="set-decision" data-value="REPROVAR">
+                <span class="decision-dot">${icon('close')}</span>
+                <span class="decision-title">NÃO – Reprovar devolução</span>
+              </button>
+            </div>
+          </section>
+        </aside>
+
+        <form id="result-form">
+          ${decisionPanel}
+        </form>
+      </div>
+    </div>`;
+}
+
+// Tela 6 do Moodboard 2 — Atendimento concluído
+async function completedView() {
+  const info = state.inspection.resumoConclusao || {
+    numeroPedido: '—',
+    produto: 'Produto conferido',
+    aprovada: true,
+    detalhe: 'A decisão foi registrada com sucesso.',
+  };
+
+  return `
+    <div class="completion-screen">
+      <div class="completion-badge">${icon('check')}</div>
+      <h1>Atendimento concluído</h1>
+      <p>
+        A decisão foi registrada com sucesso para o pedido <strong>#${esc(info.numeroPedido)}</strong>
+        (${esc(info.produto)}).<br>${esc(info.detalhe)}
+      </p>
+      <button type="button" class="button full" data-action="navigate" data-view="fila">
+        ${icon('refresh')} Processar outro pedido
+      </button>
+    </div>`;
+}
+
 async function receiveView() {
-  return pageHeading('ATENDIMENTO NA LOJA', 'Receber um produto', 'Leia o QR apresentado pelo cliente ou cole o código.', false) + `
-    <div class="scan-options">
-      <button class="button primary" data-action="camera">${icon('camera')} Abrir câmera</button>
-      <button class="button outline" data-action="stop-camera" hidden>Fechar câmera</button>
-    </div>
-    <div id="camera-box" class="camera-box" hidden>
-      <video id="camera-video" playsinline muted></video>
-      <div class="camera-hint" aria-hidden="true"></div>
-    </div>
-    <p id="camera-status" class="notice" role="status" hidden></p>
-    <form id="receive-form" class="scan-form">
-      <label for="return-token">Código da devolução</label>
-      <input id="return-token" name="token" required maxlength="36" autocapitalize="none" spellcheck="false"
-             autocomplete="off" placeholder="Cole o código do QR">
-      <p class="muted">Confira o produto antes de confirmar. O recebimento inicia a análise e desativa o QR.</p>
-      <button class="button primary full">Confirmar recebimento</button>
-    </form>
-    <div id="receipt-result" class="receipt-result" role="status"></div>`;
+  return pageHeading('BALCÃO DA LOJA', 'Escanear QR Code', 'Leia o QR Code apresentado pelo cliente ou cole o código abaixo.', false) + `
+    <div class="wizard-two-cols">
+      <section class="section-block">
+        <h3>Leitura pela câmera</h3>
+        <p class="section-subtitle">Aponte a câmera do dispositivo para o QR Code na tela do cliente.</p>
+        <div class="scan-options">
+          <button type="button" class="button primary" data-action="camera">${icon('camera')} Abrir câmera</button>
+          <button type="button" class="button outline" data-action="stop-camera" hidden>Fechar câmera</button>
+        </div>
+        <div id="camera-box" class="camera-box" hidden>
+          <video id="camera-video" playsinline muted></video>
+          <div class="camera-hint" aria-hidden="true"></div>
+        </div>
+        <p id="camera-status" class="notice" role="status" hidden></p>
+      </section>
+
+      <form id="receive-form" class="scan-form">
+        <h3>Digitar ou colar código</h3>
+        <p class="section-subtitle">Caso prefira no computador do balcão, informe o código UUID abaixo.</p>
+        <label for="return-token">Código do QR Code</label>
+        <input id="return-token" name="token" required maxlength="36" autocapitalize="none" spellcheck="false"
+               autocomplete="off" placeholder="Ex.: 550e8400-e29b-41d4-a716-446655440000">
+        <p class="muted" style="font-size: 13px; margin: 10px 0 18px;">
+          O recebimento valida o QR Code do cliente e abre imediatamente a tela de conferência física.
+        </p>
+        <button type="submit" class="button primary full">Confirmar recebimento e conferir</button>
+      </form>
+    </div>`;
 }
 
 const VIEWS = {
   itens: itemsView,
-  devolucoes: returnsView,
+  motivo: reasonView,
+  evidencias: evidenceView,
   lojas: storesView,
+  devolucoes: returnsView,
   detalhe: detailView,
   avisos: notificationsView,
   conta: accountView,
   fila: queueView,
+  conferir: inspectView,
+  resultado: resultView,
+  concluido: completedView,
   receber: receiveView,
 };
 
 
 // ---------------------------------------------------------------------------
-// Ações (cliques e formulários)
+// Interações, cliques e submissões de formulário
 // ---------------------------------------------------------------------------
 
 function askConfirmation(title, description, confirmLabel = 'Confirmar') {
@@ -833,11 +1659,13 @@ function askConfirmation(title, description, confirmLabel = 'Confirmar') {
   });
 }
 
-// Trava o botão enquanto a ação roda, evitando cliques duplos.
 async function whileBusy(button, work) {
   if (button.disabled) return;
+  const originalHtml = button.innerHTML;
+  const busyLabel = button.dataset.busyLabel;
   button.disabled = true;
   button.setAttribute('aria-busy', 'true');
+  if (busyLabel) button.textContent = busyLabel;
   try {
     await work();
   } catch (error) {
@@ -845,16 +1673,17 @@ async function whileBusy(button, work) {
   } finally {
     button.disabled = false;
     button.removeAttribute('aria-busy');
+    if (busyLabel) button.innerHTML = originalHtml;
   }
 }
 
 async function getCurrentPosition() {
-  if (!navigator.geolocation) throw new Error('Localização indisponível. Busque pelo nome ou endereço.');
+  if (!navigator.geolocation) throw new Error('Localização indisponível. Selecione uma loja da lista.');
   try {
     return await new Promise((resolve, reject) =>
       navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 12000, maximumAge: 60000 }));
   } catch {
-    throw new Error('Não foi possível acessar a localização. Você pode buscar pelo nome ou endereço.');
+    throw new Error('Não foi possível acessar sua localização. Escolha uma loja na lista abaixo.');
   }
 }
 
@@ -865,28 +1694,43 @@ async function showNearbyStores() {
   if (state.view === 'lojas') await go('lojas', { nearby });
 }
 
-async function createReturn(storeId) {
+async function submitReturnRequest() {
   const item = state.selectedItem;
-  const loja = state.stores.find((s) => String(s.id) === storeId);
-  if (!item || !loja) return;
+  if (!item) return;
 
-  const ok = await askConfirmation('Confirmar devolução?',
-    `${item.produto} · ${item.quantidade} unidade(s). Entrega em ${loja.nome}.`, 'Confirmar solicitação');
-  if (!ok) return;
+  const form = $('#resolution-form');
+  if (form) {
+    const data = new FormData(form);
+    if (data.get('tipoResolucao')) state.draft.tipoResolucao = String(data.get('tipoResolucao'));
+    if (data.get('lojaId')) state.draft.lojaId = Number(data.get('lojaId'));
+  }
 
-  const result = await api('/devolucoes', { method: 'POST', body: { itemCompradoId: item.id, lojaId: loja.id } });
-  toast('Solicitação criada. Seu QR está pronto.');
+  if (!state.draft.lojaId) {
+    throw new Error('Selecione uma loja para entregar o produto.');
+  }
+
+  const body = {
+    itemCompradoId: item.id,
+    lojaId: Number(state.draft.lojaId),
+    motivo: state.draft.motivo || 'PRODUTO_COM_DEFEITO',
+    comentario: state.draft.comentario?.trim() || null,
+    tipoResolucao: state.draft.tipoResolucao || 'TROCA',
+    evidencias: state.draft.evidencias || [],
+  };
+
+  const result = await api('/devolucoes', { method: 'POST', body });
+  toast('Solicitação registrada! Seu QR Code está pronto.');
   await go('detalhe', { id: result.id });
 }
 
 async function renewQr(id) {
   await api(`/devolucoes/${id}/qrcode/renovar`, { method: 'POST' });
-  toast('QR atualizado.');
+  toast('QR Code renovado com sucesso.');
   await go('detalhe', { id });
 }
 
 async function cancelReturn(id) {
-  const ok = await askConfirmation('Cancelar solicitação?', 'O QR desta devolução deixará de funcionar.', 'Cancelar solicitação');
+  const ok = await askConfirmation('Cancelar solicitação?', 'O QR Code desta devolução deixará de funcionar.', 'Cancelar solicitação');
   if (!ok) return;
   await api(`/devolucoes/${id}/cancelar`, { method: 'POST' });
   toast('Solicitação cancelada.');
@@ -899,19 +1743,81 @@ async function markNotificationRead(id) {
   await go('avisos', state.params);
 }
 
+async function submitInspectionResult() {
+  const id = state.inspection.id;
+  const item = state.inspection.item;
+  if (!id || !item) return;
+
+  const form = $('#result-form');
+  const data = form ? new FormData(form) : new FormData();
+
+  if (state.inspection.decisao !== 'REPROVAR') {
+    const destino = String(data.get('destino') || state.inspection.destino || 'ESTOQUE');
+    const ongParceira = String(data.get('ongParceira') || state.inspection.ongParceira || 'ECOSMAG');
+    const ongLabel = ONGS_PARCEIRAS[ongParceira]?.title || ongParceira;
+
+    await api(`/funcionario/devolucoes/${id}/destino`, {
+      method: 'POST',
+      body: { destino, itensConferidos: state.inspection.checked },
+    });
+    const destDesc = destino === 'DOACAO_ONG'
+      ? `Destinação socioambiental · Parceiro: ${ongLabel}`
+      : (DESTINATIONS[destino] || destino);
+
+    state.inspection.resumoConclusao = {
+      numeroPedido: item.numeroPedido,
+      produto: item.produto,
+      aprovada: true,
+      detalhe: `Devolução aprovada · ${destDesc}.`,
+    };
+    toast('Devolução aprovada e destinação confirmada.');
+    await go('concluido');
+  } else {
+    const motivo = String(data.get('motivoReprovacao') || state.inspection.motivoReprovacao || 'SINAIS_DE_USO');
+    const observacao = String(data.get('observacao') || '').trim();
+    if (motivo === 'OUTRO' && !observacao) {
+      throw new Error('Descreva na observação o motivo da reprovação.');
+    }
+    await api(`/funcionario/devolucoes/${id}/reprovar`, {
+      method: 'POST',
+      body: { motivo, observacao: observacao || null, itensConferidos: state.inspection.checked },
+    });
+    state.inspection.resumoConclusao = {
+      numeroPedido: item.numeroPedido,
+      produto: item.produto,
+      aprovada: false,
+      detalhe: `Devolução não aprovada (${MOTIVOS_REPROVACAO[motivo] || motivo}).`,
+    };
+    toast('Atendimento finalizado.');
+    await go('concluido');
+  }
+}
+
+async function receiveProduct(token) {
+  if (!isValidToken(token)) {
+    throw new Error('Confira o código. Ele deve ser o UUID completo do QR Code da devolução.');
+  }
+  const result = await api('/funcionario/devolucoes/escanear', { method: 'POST', body: { token } });
+  stopCamera();
+  toast('Produto recebido! Iniciando conferência física.');
+  state.inspection = blankInspection();
+  await go('conferir', { id: result.id });
+}
+
 $('#navigation').addEventListener('click', (event) => {
   const button = event.target.closest('[data-view]');
   if (!button) return;
   $('#header-search-input').value = '';
+  navDirection = 'menu';
   go(button.dataset.view);
 });
 
 $('#content').addEventListener('click', (event) => {
   const button = event.target.closest('button[data-action]');
   if (!button || button.disabled) return;
-  const { action, id, view, page, value } = button.dataset;
+  const { action, id, view, page, value, index } = button.dataset;
+  if (button.classList.contains('back-button')) navDirection = 'back';
 
-  // Ações que só trocam de tela.
   switch (action) {
     case 'navigate': return go(view);
     case 'refresh': return go(state.view, state.params);
@@ -921,16 +1827,58 @@ $('#content').addEventListener('click', (event) => {
     case 'history-page': return go('detalhe', { ...state.params, histPagina: Number(page) });
     case 'detail': return go('detalhe', { id });
     case 'stop-camera': return stopCamera();
+
+    case 'scroll-details': {
+      const card = $('#request-details-card');
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
     case 'select-item':
       state.selectedItem = state.items.find((i) => String(i.id) === id);
-      return go('lojas');
+      state.draft = blankDraft();
+      return go('motivo');
+
+    case 'pick-photo': {
+      const commentBox = $('#evidence-comment');
+      if (commentBox) state.draft.comentario = commentBox.value;
+      if ((state.draft.evidencias || []).length >= 3) {
+        toast('Você já adicionou o limite máximo de 3 fotos.', true);
+        return;
+      }
+      $('#photo-input')?.click();
+      return;
+    }
+
+    case 'remove-photo': {
+      const commentBox = $('#evidence-comment');
+      if (commentBox) state.draft.comentario = commentBox.value;
+      state.draft.evidencias.splice(Number(index), 1);
+      return go('evidencias');
+    }
+
+    case 'video-info':
+      toast('Dica: adicione até 3 fotos nítidas do produto. O suporte a vídeo estará disponível em breve.');
+      return;
+
+    case 'focus-comment':
+      $('#evidence-comment')?.focus();
+      return;
+
+    case 'inspect':
+      return go('conferir', { id: Number(id) });
+
+    case 'set-decision': {
+      const notes = $('#reject-notes');
+      if (notes) state.inspection.observacao = notes.value;
+      state.inspection.decisao = value;
+      return go('resultado', { id: state.inspection.id }, { keepScroll: true });
+    }
   }
 
-  // Ações que falam com o servidor ou com o aparelho.
   const handlers = {
     camera: () => startCamera(),
     nearby: () => showNearbyStores(),
-    'create-return': () => createReturn(id),
     renew: () => renewQr(id),
     cancel: () => cancelReturn(id),
     read: () => markNotificationRead(id),
@@ -938,10 +1886,59 @@ $('#content').addEventListener('click', (event) => {
   if (handlers[action]) whileBusy(button, handlers[action]);
 });
 
-// Os filtros da fila aplicam assim que o funcionário troca uma opção.
-$('#content').addEventListener('change', (event) => {
-  const form = event.target.closest('#queue-filter');
-  if (form && event.target.matches('select')) form.requestSubmit();
+$('#content').addEventListener('change', async (event) => {
+  const target = event.target;
+
+  // Compressão e adição de fotos na Etapa 2
+  if (target.id === 'photo-input' && target.files?.length) {
+    const commentBox = $('#evidence-comment');
+    if (commentBox) state.draft.comentario = commentBox.value;
+
+    const remaining = 3 - state.draft.evidencias.length;
+    const files = Array.from(target.files).slice(0, remaining);
+    try {
+      for (const file of files) {
+        const dataUrl = await compressImageFile(file);
+        state.draft.evidencias.push(dataUrl);
+      }
+      toast('Foto adicionada às evidências.');
+      await go('evidencias');
+    } catch (error) {
+      toast(error.message, true);
+    }
+    return;
+  }
+
+  // Atualiza visualmente o texto "Validado" / "Toque p/ validar" na checklist do funcionário
+  if (target.name === 'itemConferencia') {
+    const hint = target.closest('.check-item')?.querySelector('.check-hint');
+    if (hint) hint.textContent = target.checked ? 'Validado' : 'Toque p/ validar';
+    return;
+  }
+
+  // O destaque inicial vem do HTML (.selected); ao trocar de opcao ele precisa acompanhar o radio marcado
+  if (target.type === 'radio' && target.name) {
+    document.querySelectorAll(`input[type="radio"][name="${target.name}"]`).forEach((radio) => {
+      radio.closest('.option-card')?.classList.toggle('selected', radio.checked);
+    });
+  }
+
+  if (target.name === 'destino') {
+    state.inspection.destino = target.value;
+    if (state.view === 'resultado') await go('resultado', { id: state.inspection.id }, { keepScroll: true });
+    return;
+  } else if (target.name === 'ongParceira') {
+    state.inspection.ongParceira = target.value;
+  } else if (target.name === 'motivoReprovacao') {
+    state.inspection.motivoReprovacao = target.value;
+  } else if (target.name === 'tipoResolucao') {
+    state.draft.tipoResolucao = target.value;
+  } else if (target.name === 'lojaId') {
+    state.draft.lojaId = Number(target.value);
+  }
+
+  const form = target.closest('#queue-filter');
+  if (form && target.matches('select')) form.requestSubmit();
 });
 
 async function savePreferences(data) {
@@ -950,54 +1947,46 @@ async function savePreferences(data) {
   toast('Preferências salvas.');
 }
 
-async function setDestination(returnId, destino) {
-  if (!destino) return;
-  const ok = await askConfirmation('Definir destino?',
-    `A devolução #${returnId} será encaminhada para ${DESTINATIONS[destino].toLowerCase()}. Ela continuará pendente até o processamento.`);
-  if (!ok) return;
-
-  await api(`/funcionario/devolucoes/${returnId}/destino`, { method: 'POST', body: { destino } });
-  toast('Destino definido. Processamento pendente.');
-  await go('fila', state.params);
-}
-
-async function receiveProduct(token) {
-  if (!isValidToken(token)) {
-    throw new Error('Confira o código. Ele deve ser o código completo apresentado no QR da devolução.');
-  }
-  const ok = await askConfirmation('Confirmar recebimento?',
-    'Confirme que o produto está em suas mãos. O QR será desativado e a devolução seguirá para análise.', 'Receber produto');
-  if (!ok) return;
-
-  const result = await api('/funcionario/devolucoes/escanear', { method: 'POST', body: { token } });
-  stopCamera();
-
-  if (state.view === 'receber') {
-    $('#return-token').value = '';
-    $('#receipt-result').innerHTML = `
-      <section class="card">
-        <h3>Produto recebido ${icon('check')}</h3>
-        <p>A devolução #${result.id} está em análise.</p>
-        ${navigateButton('fila', 'Abrir fila da loja', 'secondary')}
-      </section>`;
-  }
-  toast('Recebimento confirmado.');
-}
-
 $('#content').addEventListener('submit', (event) => {
   event.preventDefault();
   const form = event.target;
   const data = new FormData(form);
   const button = form.querySelector('button[type=submit], button:not([type])');
+
+  if (form.id === 'reason-form') {
+    state.draft.motivo = String(data.get('motivo') || 'PRODUTO_COM_DEFEITO');
+    state.draft.comentario = String(data.get('comentario') || '').trim();
+    go('evidencias');
+    return;
+  }
+
+  if (form.id === 'evidence-form') {
+    state.draft.comentario = String(data.get('comentario') || '').trim();
+    go('lojas');
+    return;
+  }
+
+  if (form.id === 'inspect-form') {
+    state.inspection.checked = data.getAll('itemConferencia').map(String);
+    state.inspection.decisao = state.inspection.checked.length === Object.keys(CHECKLIST_ITEMS).length
+      ? 'APROVAR'
+      : 'REPROVAR';
+    go('resultado', { id: state.inspection.id });
+    return;
+  }
+
+  if (form.id === 'queue-filter') {
+    go('fila', Object.fromEntries(data));
+    return;
+  }
+
   if (!button) return;
 
-  if (form.id === 'store-search') return go('lojas', { busca: data.get('busca') });
-  if (form.id === 'queue-filter') return go('fila', Object.fromEntries(data));
-
   whileBusy(button, async () => {
-    if (form.id === 'preferences-form') await savePreferences(data);
+    if (form.id === 'resolution-form') await submitReturnRequest();
+    else if (form.id === 'result-form') await submitInspectionResult();
+    else if (form.id === 'preferences-form') await savePreferences(data);
     else if (form.id === 'receive-form') await receiveProduct(String(data.get('token')).trim());
-    else if (form.dataset.destination) await setDestination(form.dataset.destination, data.get('destino'));
   });
 });
 
@@ -1024,11 +2013,9 @@ $('#login-form').addEventListener('submit', (event) => {
       const credentials = new URLSearchParams({ username: $('#username').value.trim(), password: $('#password').value });
       await api('/sessao', { method: 'POST', body: credentials });
       $('#password').value = '';
-      // O Spring troca o token CSRF depois do login.
       csrf = await fetchCsrfToken();
       await enter(await api('/sessao'));
     } catch (error) {
-      // O servidor manda uma mensagem própria quando a conta está bloqueada.
       const wrongCredentials = error.status === 401 && !error.fromServer;
       $('#login-error').textContent = wrongCredentials ? 'Login ou senha inválidos.' : error.message;
       $('#login-error').hidden = false;
@@ -1074,7 +2061,6 @@ function stopCamera() {
   if (stopButton) stopButton.hidden = true;
 }
 
-// O leitor (jsQR) é grande, então só carregamos quando a câmera é aberta.
 function loadQrDecoder() {
   if (window.jsQR) return Promise.resolve(window.jsQR);
   if (decoderPromise) return decoderPromise;
@@ -1099,7 +2085,7 @@ async function startCamera() {
   const userLeft = () => renderAtStart !== renderCount;
 
   if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-    throw new Error('A câmera precisa de uma conexão HTTPS. Você também pode colar o código.');
+    throw new Error('A câmera precisa de uma conexão HTTPS ou localhost. Você também pode colar o código.');
   }
 
   const decode = await loadQrDecoder();
@@ -1109,7 +2095,7 @@ async function startCamera() {
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' } } });
   } catch {
-    throw new Error('Não foi possível acessar a câmera. Verifique a permissão do navegador ou cole o código.');
+    throw new Error('Não foi possível acessar a câmera. Verifique a permissão ou cole o código.');
   }
   if (userLeft()) {
     stream.getTracks().forEach((track) => track.stop());
@@ -1123,7 +2109,7 @@ async function startCamera() {
   $('[data-action="stop-camera"]').hidden = false;
 
   const status = $('#camera-status');
-  status.textContent = 'Aponte a câmera para o QR apresentado pelo cliente.';
+  status.textContent = 'Aponte a câmera para o QR Code apresentado pelo cliente.';
   status.hidden = false;
 
   try {
@@ -1140,7 +2126,6 @@ async function startCamera() {
     if (!cameraStream || userLeft()) return;
 
     if (video.readyState >= 2 && video.videoWidth) {
-      // Reduz a imagem para no máximo 640px: decodifica mais rápido e não perde leitura.
       canvas.width = Math.min(video.videoWidth, 640);
       canvas.height = Math.round(video.videoHeight * canvas.width / video.videoWidth);
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -1153,10 +2138,10 @@ async function startCamera() {
         stopCamera();
         $('#return-token').value = token;
         $('#return-token').focus();
-        status.textContent = 'Código lido. Confira o produto e confirme o recebimento.';
+        status.textContent = 'Código lido com sucesso! Confirme abaixo para iniciar a conferência.';
         return;
       }
-      if (token) status.textContent = 'Este QR não parece ser uma devolução. Tente o QR apresentado no site.';
+      if (token) status.textContent = 'Este QR não parece ser uma devolução Maga Next.';
     }
 
     cameraTimer = setTimeout(scanFrame, 180);
@@ -1171,10 +2156,9 @@ window.addEventListener('pagehide', stopCamera);
 
 
 // ---------------------------------------------------------------------------
-// Contagem regressiva do QR
+// Contagem regressiva do QR Code
 // ---------------------------------------------------------------------------
 
-// Só visual: quem decide se o QR vale é o servidor.
 let lastExpiredQr = '';
 
 function updateCountdowns() {
@@ -1183,9 +2167,8 @@ function updateCountdowns() {
     if (Number.isNaN(remaining)) return;
 
     if (remaining <= 0) {
-      el.textContent = 'QR expirado';
+      el.textContent = 'QR Code expirado';
       el.classList.add('expired');
-      // Recarrega a tela uma única vez para mostrar o botão de renovar.
       const key = state.params.id + el.dataset.expires;
       if (state.view === 'detalhe' && lastExpiredQr !== key) {
         lastExpiredQr = key;
@@ -1206,7 +2189,7 @@ setInterval(updateCountdowns, 1000);
 
 
 // ---------------------------------------------------------------------------
-// Sessão parada: avisa aos 28 min e sai aos 30 min (mesmo tempo do servidor)
+// Sessão parada: avisa aos 28 min e encerra aos 30 min
 // ---------------------------------------------------------------------------
 
 const IDLE_WARNING_MS = 28 * 60 * 1000;
@@ -1243,7 +2226,7 @@ $('#idle-dialog').addEventListener('close', markActivity);
 
 
 // ---------------------------------------------------------------------------
-// Início
+// Inicialização
 // ---------------------------------------------------------------------------
 
 async function start() {
@@ -1258,7 +2241,6 @@ async function start() {
 
 start();
 
-// Permite instalar o site como app. O service worker não guarda nada em cache.
 const canUseServiceWorker = location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname);
 if ('serviceWorker' in navigator && canUseServiceWorker) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));

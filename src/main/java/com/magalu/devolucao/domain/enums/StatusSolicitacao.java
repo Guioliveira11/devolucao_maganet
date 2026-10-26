@@ -10,5 +10,6 @@ public enum StatusSolicitacao {
     EM_ANALISE,
     DESTINO_PENDENTE,
     CONCLUIDA,
-    CANCELADA
+    CANCELADA,
+    REPROVADA
 }

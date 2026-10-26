@@ -1,16 +1,17 @@
-﻿{
-  "name": "Devoluções Maganet",
-  "short_name": "Devoluções",
-  "description": "Solicite e acompanhe suas devoluções.",
-  "lang": "pt-BR",
+{
+  "name": "Maga Next · Troca e Devolução",
+  "short_name": "Maga Next",
+  "description": "Devolução Inteligente: solicite trocas e devoluções pelo celular e acompanhe cada etapa.",
   "start_url": "/",
-  "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#005bea",
+  "background_color": "#EEF4FE",
+  "theme_color": "#2C5FD4",
   "icons": [
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
   ]
 }
