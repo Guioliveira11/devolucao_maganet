@@ -2480,3 +2480,116 @@ dialog h2 {
     transform: none;
   }
 }
+
+
+/* ---------------------------------------------------------------------------
+   Logo (icone) e cadastro
+--------------------------------------------------------------------------- */
+.brand-icon {
+  width: 32px;
+  height: auto;
+  margin-left: 6px;
+  flex: 0 0 auto;
+}
+
+/* Em fundos escuros ou azuis, o icone ganha um disco branco para manter o contraste. */
+.brand.light .brand-icon,
+body[data-role="FUNCIONARIO"] .app-header .brand-icon {
+  width: 34px;
+  height: 34px;
+  padding: 5px;
+  border-radius: 50%;
+  background: var(--white);
+  object-fit: contain;
+}
+
+.register-card {
+  max-width: 430px;
+}
+
+.role-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 18px 0 20px;
+  padding: 4px;
+  background: var(--blue-tint);
+  border-radius: 14px;
+}
+
+.role-tabs[hidden] {
+  display: none;
+}
+
+.role-tab {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  border-radius: 11px;
+  padding: 9px 8px;
+  min-height: 40px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.role-tab[aria-selected="true"] {
+  background: var(--white);
+  color: var(--blue-dark);
+  box-shadow: var(--shadow);
+}
+
+.register-card h2 {
+  margin-bottom: 4px;
+}
+
+.login-card select {
+  margin-bottom: 16px;
+}
+
+.field-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: -8px 0 14px;
+}
+
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.check-grid {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.check-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.check-option input {
+  margin: 0;
+}
+
+.login-help .text-button {
+  display: inline;
+  padding: 0;
+  min-height: 0;
+}
+
+/* Area da ONG */
+.donation-body {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.donation-info {
+  flex: 1;
+  min-width: 0;
+}

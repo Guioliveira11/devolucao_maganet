@@ -41,4 +41,12 @@ public interface SolicitacaoDevolucaoRepository extends JpaRepository<Solicitaca
 
     @Query("select s.id from SolicitacaoDevolucao s join s.historicoQrCodes q where q.token = :token")
     Optional<Long> findIdByQrToken(@Param("token") UUID token);
+
+    org.springframework.data.domain.Page<SolicitacaoDevolucao> findByOngDestinataria_IdAndDestinoFinal(
+            Long ongId, com.magalu.devolucao.domain.enums.DestinoProduto destino,
+            org.springframework.data.domain.Pageable pageable);
+
+    org.springframework.data.domain.Page<SolicitacaoDevolucao> findByOngDestinataria_IdAndDestinoFinalAndStatus(
+            Long ongId, com.magalu.devolucao.domain.enums.DestinoProduto destino, StatusSolicitacao status,
+            org.springframework.data.domain.Pageable pageable);
 }

@@ -453,6 +453,7 @@ function showLogin(message = '') {
   $('#login-error').textContent = message;
   $('#login-error').hidden = !message;
   $('#password').value = '';
+  closeRegister();
 
   for (const dialog of [$('#confirm-dialog'), $('#idle-dialog')]) {
     if (dialog?.open) dialog.close('cancel');
@@ -481,10 +482,17 @@ const EMPLOYEE_MENU = [
   ['conta', 'Conta', 'user'],
 ];
 
+const ONG_MENU = [
+  ['doacoes', 'Doações', 'box'],
+  ['conta', 'Conta', 'user'],
+];
+
+const MENUS = { CLIENTE: CLIENT_MENU, FUNCIONARIO: EMPLOYEE_MENU, ONG: ONG_MENU };
+
 function renderNav() {
   if (!state.user) return;
 
-  const menu = state.user.perfil === 'CLIENTE' ? CLIENT_MENU : EMPLOYEE_MENU;
+  const menu = MENUS[state.user.perfil] || EMPLOYEE_MENU;
   const parentMap = {
     motivo: 'itens',
     evidencias: 'itens',
@@ -535,10 +543,10 @@ async function enter(user) {
 
   const badge = $('#header-role-badge');
   if (badge) {
-    badge.textContent = isClient ? 'Cliente' : (user.loja || 'Operação Loja');
+    badge.textContent = isClient ? 'Cliente' : (user.perfil === 'ONG' ? 'ONG parceira' : (user.loja || 'Operação Loja'));
   }
 
-  await go(isClient ? 'itens' : 'fila');
+  await go(isClient ? 'itens' : (user.perfil === 'ONG' ? 'doacoes' : 'fila'));
 }
 
 const LOADING_HTML = `
@@ -1165,7 +1173,10 @@ async function accountView() {
   const isClient = user.perfil === 'CLIENTE';
   const initial = esc((user.nome || '?').slice(0, 1).toUpperCase());
 
-  let body = '<p class="muted">Perfil habilitado para conferência física de produtos, leitura de QR Code e destinação socioambiental ou estoque.</p>';
+  const isOng = user.perfil === 'ONG';
+  let body = isOng
+    ? '<p class="muted">Perfil de ONG parceira: acompanhe as doações encaminhadas pelas lojas e confirme o recebimento dos produtos.</p>'
+    : '<p class="muted">Perfil habilitado para conferência física de produtos, leitura de QR Code e destinação socioambiental ou estoque.</p>';
   if (isClient) {
     const prefs = await api('/notificacoes/preferencias');
     body = `
@@ -1188,7 +1199,7 @@ async function accountView() {
         <div class="account-avatar" aria-hidden="true">${initial}</div>
         <div>
           <h3>${esc(user.nome)}</h3>
-          <p class="muted">${isClient ? 'Cliente E-commerce' : `Atendente de Loja · ${esc(user.loja)}`}</p>
+          <p class="muted">${isClient ? 'Cliente E-commerce' : isOng ? 'ONG parceira' : `Atendente de Loja · ${esc(user.loja)}`}</p>
         </div>
       </div>
       ${body}
@@ -1623,6 +1634,62 @@ async function receiveView() {
     </div>`;
 }
 
+// ---------------------------------------------------------------------------
+// Telas da ONG parceira
+// ---------------------------------------------------------------------------
+
+const DONATION_FILTERS = { DESTINO_PENDENTE: 'A receber', CONCLUIDA: 'Recebidas' };
+
+function donationCard(d) {
+  const done = d.status === 'CONCLUIDA';
+  const action = done
+    ? `<p class="small-note">Recebimento confirmado em <strong>${esc(formatDateTime(d.concluidaEm))}</strong>.</p>`
+    : `<button type="button" class="button primary full" data-action="confirm-donation" data-id="${d.id}">Confirmar recebimento</button>`;
+
+  return `
+    <article class="card">
+      <div class="order-card-row">
+        <span class="tag ${done ? 'green' : 'orange'}">${done ? 'Recebida' : 'A receber'}</span>
+        <span class="order-number">Pedido #${esc(d.numeroPedido)}</span>
+      </div>
+      <div class="donation-body">
+        <div class="product-thumb">
+          <img src="${productImageUrl(d.produto)}" alt="${esc(d.produto)}" loading="lazy">
+        </div>
+        <div class="donation-info">
+          <h3 class="order-title">${esc(d.produto)}</h3>
+          <p class="order-number">${esc(d.categoria || 'Sem categoria')} · ${plural(d.quantidade, 'unidade', 'unidades')}</p>
+          <p class="order-number">Loja de origem: ${esc(d.loja)}</p>
+        </div>
+        <div class="category-badge" aria-hidden="true">${icon(productGlyph(d.produto))}</div>
+      </div>
+      ${action}
+    </article>`;
+}
+
+async function donationsView({ pagina = 0, status = '' } = {}) {
+  const page = await api(`/ong/doacoes?${toQueryString({ pagina, tamanho: 12, status })}`);
+
+  const list = page.itens.length
+    ? `<div class="cards">${page.itens.map(donationCard).join('')}</div>`
+    : emptyState('Nenhuma doação por aqui', 'Quando uma loja encaminhar produtos de uma categoria aceita pela sua ONG, eles aparecerão aqui.');
+
+  return pageHeading('DOAÇÕES', 'Doações encaminhadas à sua ONG', 'Confirme o recebimento quando os produtos chegarem.')
+    + `<div class="chips" role="group" aria-label="Filtrar doações">${chips(DONATION_FILTERS, status, 'Todas', 'chip-donation')}</div>`
+    + list
+    + pagination(page);
+}
+
+async function confirmDonation(id) {
+  const ok = await askConfirmation('Confirmar recebimento?',
+    'Confirme que os produtos desta doação já chegaram à sua ONG. A doação será marcada como concluída.', 'Confirmar recebimento');
+  if (!ok) return;
+  await api(`/ong/doacoes/${id}/confirmar`, { method: 'POST' });
+  toast('Recebimento confirmado. Obrigado!');
+  await go('doacoes', state.params);
+}
+
+
 const VIEWS = {
   itens: itemsView,
   motivo: reasonView,
@@ -1632,6 +1699,7 @@ const VIEWS = {
   detalhe: detailView,
   avisos: notificationsView,
   conta: accountView,
+  doacoes: donationsView,
   fila: queueView,
   conferir: inspectView,
   resultado: resultView,
@@ -1823,6 +1891,7 @@ $('#content').addEventListener('click', (event) => {
     case 'refresh': return go(state.view, state.params);
     case 'chip': return go('devolucoes', { status: value });
     case 'chip-unread': return go('avisos', { naoLidas: value === '1' });
+    case 'chip-donation': return go('doacoes', { status: value });
     case 'page': return go(state.view, { ...state.params, pagina: Number(page) });
     case 'history-page': return go('detalhe', { ...state.params, histPagina: Number(page) });
     case 'detail': return go('detalhe', { id });
@@ -1882,6 +1951,7 @@ $('#content').addEventListener('click', (event) => {
     renew: () => renewQr(id),
     cancel: () => cancelReturn(id),
     read: () => markNotificationRead(id),
+    'confirm-donation': () => confirmDonation(id),
   };
   if (handlers[action]) whileBusy(button, handlers[action]);
 });
@@ -2009,12 +2079,9 @@ $('#login-form').addEventListener('submit', (event) => {
   whileBusy(button, async () => {
     $('#login-error').hidden = true;
     try {
-      csrf = await fetchCsrfToken();
-      const credentials = new URLSearchParams({ username: $('#username').value.trim(), password: $('#password').value });
-      await api('/sessao', { method: 'POST', body: credentials });
+      const password = $('#password').value;
       $('#password').value = '';
-      csrf = await fetchCsrfToken();
-      await enter(await api('/sessao'));
+      await performLogin($('#username').value.trim(), password);
     } catch (error) {
       const wrongCredentials = error.status === 401 && !error.fromServer;
       $('#login-error').textContent = wrongCredentials ? 'Login ou senha inválidos.' : error.message;
@@ -2023,6 +2090,164 @@ $('#login-form').addEventListener('submit', (event) => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// Cadastro (cliente, funcionário e ONG)
+// ---------------------------------------------------------------------------
+
+async function performLogin(username, password) {
+  csrf = await fetchCsrfToken();
+  await api('/sessao', { method: 'POST', body: new URLSearchParams({ username, password }) });
+  // O Spring troca o token CSRF depois do login.
+  csrf = await fetchCsrfToken();
+  await enter(await api('/sessao'));
+}
+
+const REGISTER_KINDS = { cliente: 'Cliente', funcionario: 'Funcionário', ong: 'ONG' };
+const registerState = { kind: 'cliente', options: null };
+
+function registerInput(name, label, { type = 'text', autocomplete = 'off', maxlength = 255, hint = '', inputmode = '', placeholder = '' } = {}) {
+  return `
+    <label for="reg-${name}">${esc(label)}</label>
+    <input id="reg-${name}" name="${name}" type="${type}" autocomplete="${autocomplete}" maxlength="${maxlength}"
+           ${inputmode ? `inputmode="${inputmode}"` : ''} placeholder="${esc(placeholder)}" autocapitalize="none" spellcheck="false">
+    ${hint ? `<p class="field-hint">${esc(hint)}</p>` : ''}`;
+}
+
+function registerFields(kind, options) {
+  const access =
+    registerInput('login', 'Login', { autocomplete: 'username', maxlength: 50, hint: 'Letras minúsculas, números, ponto, hífen ou sublinhado.' })
+    + registerInput('senha', 'Senha', { type: 'password', autocomplete: 'new-password', maxlength: 72, hint: 'No mínimo 8 caracteres.' })
+    + registerInput('senhaConfirmacao', 'Repita a senha', { type: 'password', autocomplete: 'new-password', maxlength: 72 });
+
+  if (kind === 'funcionario') {
+    const stores = (options?.lojas || []).map((l) => `<option value="${l.id}">${esc(l.nome)}</option>`).join('');
+    return registerInput('nome', 'Nome completo', { autocomplete: 'name', maxlength: 150 })
+      + registerInput('matricula', 'Matrícula', { maxlength: 50 })
+      + `<label for="reg-lojaId">Loja onde trabalha</label>
+         <select id="reg-lojaId" name="lojaId"><option value="">Escolha a loja</option>${stores}</select>`
+      + registerInput('codigoConvite', 'Código de convite', { type: 'password', maxlength: 100, hint: 'Fornecido pela administração da loja.' })
+      + access;
+  }
+
+  if (kind === 'ong') {
+    const categories = (options?.categorias || []).map((c) => `
+      <label class="check-option"><input type="checkbox" name="categorias" value="${esc(c)}">${esc(c)}</label>`).join('');
+    return registerInput('nome', 'Nome da ONG', { maxlength: 255 })
+      + registerInput('cnpj', 'CNPJ', { inputmode: 'numeric', maxlength: 18, placeholder: '00.000.000/0000-00' })
+      + `<span class="field-label">Categorias de produto que a ONG aceita</span>
+         <div class="check-grid">${categories}</div>`
+      + registerInput('codigoConvite', 'Código de convite', { type: 'password', maxlength: 100, hint: 'Fornecido pela administração.' })
+      + access;
+  }
+
+  return registerInput('nome', 'Nome completo', { autocomplete: 'name', maxlength: 150 })
+    + registerInput('cpf', 'CPF', { inputmode: 'numeric', maxlength: 14, placeholder: '000.000.000-00' })
+    + registerInput('email', 'E-mail', { type: 'email', autocomplete: 'email', maxlength: 255 })
+    + registerInput('telefone', 'Telefone (opcional)', { type: 'tel', autocomplete: 'tel', maxlength: 20 })
+    + access;
+}
+
+function renderRegister() {
+  const { kind, options } = registerState;
+  const allowed = Object.keys(REGISTER_KINDS).filter((k) =>
+    k === 'cliente' || (k === 'funcionario' && options?.cadastroFuncionario) || (k === 'ong' && options?.cadastroOng));
+
+  const tabs = $('#register-tabs');
+  tabs.hidden = allowed.length < 2;
+  tabs.innerHTML = allowed.map((k) => `
+    <button type="button" class="role-tab" role="tab" data-kind="${k}" aria-selected="${k === kind}">${REGISTER_KINDS[k]}</button>`).join('');
+
+  $('#register-form').innerHTML = registerFields(kind, options) + `
+    <p id="register-error" class="error-message" role="alert" hidden></p>
+    <button class="button primary full" type="submit">Criar conta</button>`;
+}
+
+async function openRegister() {
+  $('#login-card').hidden = true;
+  $('#register-card').hidden = false;
+  registerState.kind = 'cliente';
+  registerState.options = null;
+  renderRegister();
+  try {
+    registerState.options = await api('/cadastro/opcoes');
+    // Só redesenha se houver outros tipos de conta, para não apagar o que a pessoa já digitou.
+    if (registerState.options.cadastroFuncionario || registerState.options.cadastroOng) renderRegister();
+  } catch {
+    // Sem as opções, o cadastro de cliente continua disponível.
+  }
+}
+
+function closeRegister() {
+  const card = $('#register-card');
+  if (!card) return;
+  card.hidden = true;
+  $('#login-card').hidden = false;
+  $('#register-form').replaceChildren();
+}
+
+function registerBody(kind, data) {
+  const text = (name) => String(data.get(name) ?? '').trim();
+  const access = { login: text('login'), senha: String(data.get('senha') ?? '') };
+  if (kind === 'funcionario') {
+    return { nome: text('nome'), matricula: text('matricula'), lojaId: text('lojaId') ? Number(text('lojaId')) : null,
+      codigoConvite: text('codigoConvite'), ...access };
+  }
+  if (kind === 'ong') {
+    return { nome: text('nome'), cnpj: text('cnpj'), categorias: data.getAll('categorias'),
+      codigoConvite: text('codigoConvite'), ...access };
+  }
+  return { nome: text('nome'), cpf: text('cpf'), email: text('email'), telefone: text('telefone'), ...access };
+}
+
+$('#open-register').addEventListener('click', openRegister);
+$('#back-to-login').addEventListener('click', closeRegister);
+
+$('#register-tabs').addEventListener('click', (event) => {
+  const tab = event.target.closest('[data-kind]');
+  if (!tab || tab.dataset.kind === registerState.kind) return;
+  registerState.kind = tab.dataset.kind;
+  renderRegister();
+});
+
+$('#register-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = new FormData(form);
+  const button = form.querySelector('[type=submit]');
+  const showError = (message) => {
+    const box = $('#register-error');
+    box.textContent = message;
+    box.hidden = false;
+  };
+
+  whileBusy(button, async () => {
+    $('#register-error').hidden = true;
+    if (String(data.get('senha') ?? '') !== String(data.get('senhaConfirmacao') ?? '')) {
+      showError('As senhas não conferem.');
+      return;
+    }
+
+    const body = registerBody(registerState.kind, data);
+    try {
+      csrf = await fetchCsrfToken();
+      await api(`/cadastro/${registerState.kind}`, { method: 'POST', body });
+    } catch (error) {
+      showError(error.message);
+      return;
+    }
+
+    try {
+      await performLogin(body.login, body.senha);
+      toast('Cadastro concluído! Bem-vindo(a) ao Maga Next.');
+    } catch {
+      closeRegister();
+      $('#username').value = body.login;
+      toast('Cadastro concluído! Entre com seu login e senha.');
+    }
+  });
+});
+
 
 $('#show-password').addEventListener('click', () => {
   const password = $('#password');

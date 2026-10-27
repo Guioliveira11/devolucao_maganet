@@ -7,7 +7,8 @@ public enum EventoCliente {
     QR_ESCANEADO("O produto foi recebido na loja e esta em analise."),
     DESTINO_DEFINIDO("O destino do produto foi definido."),
     QR_EXPIRADO("O QR expirou. Consulte sua devolucao para verificar a possibilidade de renovacao."),
-    CONFERENCIA_REPROVADA("A devolucao nao foi aprovada na conferencia da loja. Veja o motivo no acompanhamento.");
+    CONFERENCIA_REPROVADA("A devolucao nao foi aprovada na conferencia da loja. Veja o motivo no acompanhamento."),
+    DOACAO_RECEBIDA_PELA_ONG("A ONG parceira confirmou o recebimento da doacao do seu produto. Obrigado!");
     private final String mensagem;
     EventoCliente(String mensagem) { this.mensagem = mensagem; }
     public String mensagem() { return mensagem; }
