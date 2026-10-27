@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> {
     Optional<Funcionario> findByMatricula(String matricula);
+
+    boolean existsByMatricula(String matricula);
 }

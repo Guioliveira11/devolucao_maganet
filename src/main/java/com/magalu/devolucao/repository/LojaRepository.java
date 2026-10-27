@@ -20,4 +20,6 @@ public interface LojaRepository extends JpaRepository<Loja, Long> {
     List<Loja> findProximas(@org.springframework.data.repository.query.Param("latitude") double latitude,
             @org.springframework.data.repository.query.Param("longitude") double longitude,
             @org.springframework.data.repository.query.Param("raioKm") double raioKm);
+
+    List<Loja> findByAtivaTrueOrderByNomeAsc();
 }

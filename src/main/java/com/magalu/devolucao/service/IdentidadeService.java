@@ -22,26 +22,42 @@ public class IdentidadeService {
         return conta;
     }
 
+    // Cada conta pertence a exatamente um perfil: cliente, funcionario ou ONG.
+    private static int vinculos(ContaAcesso conta) {
+        return (conta.getUsuario() != null ? 1 : 0)
+                + (conta.getFuncionario() != null ? 1 : 0)
+                + (conta.getOng() != null ? 1 : 0);
+    }
+
     public Usuario cliente() {
         var conta = atual();
-        if (conta.getUsuario() == null || conta.getFuncionario() != null)
+        if (conta.getUsuario() == null || vinculos(conta) != 1)
             throw new AccessDeniedException("Acao exclusiva de cliente");
         return conta.getUsuario();
     }
 
     public Funcionario funcionario() {
         var conta = atual();
-        if (conta.getFuncionario() == null || conta.getUsuario() != null)
+        if (conta.getFuncionario() == null || vinculos(conta) != 1)
             throw new AccessDeniedException("Acao exclusiva de funcionario");
         return conta.getFuncionario();
     }
 
+    public OngParceira ong() {
+        var conta = atual();
+        if (conta.getOng() == null || vinculos(conta) != 1)
+            throw new AccessDeniedException("Acao exclusiva de ONG");
+        if (!conta.getOng().isAtiva()) throw new AccessDeniedException("ONG inativa");
+        return conta.getOng();
+    }
+
     public com.magalu.devolucao.dto.SessaoResponse sessao() {
         var conta = atual();
-        if ((conta.getUsuario() == null) == (conta.getFuncionario() == null))
-            throw new AccessDeniedException("Conta sem vinculo valido");
+        if (vinculos(conta) != 1) throw new AccessDeniedException("Conta sem vinculo valido");
         if (conta.getUsuario() != null)
             return new com.magalu.devolucao.dto.SessaoResponse(conta.getUsuario().getNome(), "CLIENTE", null, null);
+        if (conta.getOng() != null)
+            return new com.magalu.devolucao.dto.SessaoResponse(conta.getOng().getNome(), "ONG", null, null);
         var funcionario = conta.getFuncionario();
         return new com.magalu.devolucao.dto.SessaoResponse(funcionario.getNome(), "FUNCIONARIO",
                 funcionario.getLoja().getId(), funcionario.getLoja().getNome());
