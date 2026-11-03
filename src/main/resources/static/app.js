@@ -57,14 +57,33 @@ function productGlyph(name = '') {
   return 'box';
 }
 
-function productImageUrl(name = '') {
-  const lower = name.toLowerCase();
-  if (lower.includes('vestido') || lower.includes('camisa') || lower.includes('roupa')) return '/assets/vestido-camponesa.svg';
-  if (lower.includes('fone') || lower.includes('caixa de som')) return '/assets/produto-audio.svg';
-  if (lower.includes('tv') || lower.includes('monitor')) return '/assets/produto-tv.svg';
-  if (lower.includes('cafeteira') || lower.includes('liquidificador')) return '/assets/produto-eletro.svg';
-  return '/assets/produto-box.svg';
-}
+   const PRODUCT_IMAGES = [
+     [['vestido'], 'vestido-camponesa.svg'],
+     [['fone', 'bluetooth'], 'produto-audio.svg'],
+     [['fone'], 'fone-com-fio.svg'],
+     [['caixa de som'], 'caixa-de-som.svg'],
+     [['power bank'], 'powerbank.svg'],
+     [['carregador'], 'carregador.svg'],
+     [['cabo'], 'cabo-usb.svg'],
+     [['smartwatch'], 'smartwatch.svg'],
+     [['relogio'], 'smartwatch.svg'],
+     [['camiseta'], 'camiseta.svg'],
+     [['camisa'], 'camiseta.svg'],
+     [['calca'], 'calca.svg'],
+     [['jeans'], 'calca.svg'],
+     [['jaqueta'], 'jaqueta.svg'],
+     [['moletom'], 'moletom.svg'],
+     [['tv'], 'produto-tv.svg'],
+     [['monitor'], 'produto-tv.svg'],
+     [['cafeteira'], 'produto-eletro.svg'],
+     [['liquidificador'], 'produto-eletro.svg'],
+   ];
+
+   function productImageUrl(name = '') {
+     const text = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+     const found = PRODUCT_IMAGES.find(([words]) => words.every((word) => text.includes(word)));
+     return `/assets/${found ? found[1] : 'produto-box.svg'}`;
+   }
 
 const STATUS_NAMES = {
   AGUARDANDO_ESCANEAMENTO: 'Aguardando entrega na loja',
