@@ -7,8 +7,8 @@
   <title>Maga Next · Troca e Devolução</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/app.css?v=9">
-  <script src="/app.js?v=9" type="module"></script>
+  <link rel="stylesheet" href="/app.css?v=8">
+  <script src="/app.js?v=8" type="module"></script>
 </head>
 <body>
   <a class="skip-link" href="#content">Ir para o conteúdo</a>
@@ -63,40 +63,11 @@
             <button type="button" id="show-password" class="text-button" aria-controls="password" aria-pressed="false">Mostrar</button>
           </div>
 
-          <div class="login-forgot-row">
-            <a href="#recuperar-senha" id="show-recovery">Esqueceu sua senha?</a>
-          </div>
           <p id="login-error" class="error-message" role="alert" hidden></p>
           <button class="button primary full" type="submit">Entrar <span aria-hidden="true">→</span></button>
         </form>
 
-        <section id="recovery-panel" hidden>
-          <h2>Recuperar senha</h2>
-          <p class="muted">Informe o e-mail cadastrado na sua conta de cliente ou funcionário. Enviaremos um link para criar uma nova senha.</p>
-          <form id="recovery-form">
-            <label for="recovery-email">E-mail cadastrado</label>
-            <input id="recovery-email" name="email" type="email" autocomplete="email" required maxlength="255" placeholder="seu@email.com">
-            <p id="recovery-message" class="form-message" role="status" aria-live="polite" hidden></p>
-            <button class="button primary full" type="submit">Enviar link de recuperação</button>
-          </form>
-          <button type="button" class="text-button recovery-back" id="back-to-login">← Voltar ao login</button>
-        </section>
-
-        <section id="reset-panel" hidden>
-          <h2>Redefinir senha</h2>
-          <p class="muted">Crie uma nova senha com pelo menos 8 caracteres.</p>
-          <form id="reset-form">
-            <label for="new-password">Nova senha</label>
-            <input id="new-password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72" required placeholder="Mínimo de 8 caracteres">
-            <label for="confirm-password">Confirmar nova senha</label>
-            <input id="confirm-password" name="confirm-password" type="password" autocomplete="new-password" minlength="8" maxlength="72" required placeholder="Digite novamente a senha">
-            <p id="reset-message" class="form-message" role="status" aria-live="polite" hidden></p>
-            <button class="button primary full" type="submit">Salvar nova senha</button>
-          </form>
-          <button type="button" class="text-button recovery-back" id="reset-back-to-login">← Voltar ao login</button>
-        </section>
-
-        <p class="login-help" id="login-help">Ambiente de demonstração: use <strong>cliente</strong> ou <strong>funcionario</strong> (senha: <strong>teste</strong>).</p>
+        <p class="login-help">Ambiente de demonstração: use <strong>cliente</strong> ou <strong>funcionario</strong> (senha: <strong>teste</strong>).</p>
       </div>
       <span class="login-bottom">Maga Next · Devolução Inteligente</span>
     </div>

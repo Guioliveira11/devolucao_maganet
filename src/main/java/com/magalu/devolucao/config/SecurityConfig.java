@@ -56,8 +56,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/", "/index.html", "/app.css", "/app.js",
                         "/vendor/jsQR.js", "/fonts/Poppins-Regular.ttf", "/fonts/Poppins-Bold.ttf", 
                         "/api/v1/csrf", "/manifest.webmanifest", "/icon.svg", "/sw.js").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/sessao", "/api/v1/senha/recuperar",
-                        "/api/v1/senha/validar", "/api/v1/senha/redefinir").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/sessao").permitAll()
                 .requestMatchers("/api/v1/funcionario/**").hasRole("FUNCIONARIO")
                 .requestMatchers("/api/v1/devolucoes/**", "/api/v1/itens/**", "/api/v1/notificacoes/**").hasRole("CLIENTE")
                 .anyRequest().authenticated()

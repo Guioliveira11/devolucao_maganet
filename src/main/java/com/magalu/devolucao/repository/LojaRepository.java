@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface LojaRepository extends JpaRepository<Loja, Long> {
-    List<Loja> findByAtivaTrueOrderByNomeAsc();
     org.springframework.data.domain.Page<Loja> findByAtivaTrueAndNomeContainingIgnoreCaseOrAtivaTrueAndEnderecoContainingIgnoreCase(
             String nome, String endereco, org.springframework.data.domain.Pageable pageable);
     @org.springframework.data.jpa.repository.Query(value = """
