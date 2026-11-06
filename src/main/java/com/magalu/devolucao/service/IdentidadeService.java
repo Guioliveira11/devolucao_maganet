@@ -36,14 +36,26 @@ public class IdentidadeService {
         return conta.getFuncionario();
     }
 
+    public OngParceira ong() {
+        var conta = atual();
+        if (conta.getOng() == null || conta.getUsuario() != null || conta.getFuncionario() != null)
+            throw new AccessDeniedException("Acao exclusiva de ONG");
+        return conta.getOng();
+    }
+
     public com.magalu.devolucao.dto.SessaoResponse sessao() {
         var conta = atual();
-        if ((conta.getUsuario() == null) == (conta.getFuncionario() == null))
-            throw new AccessDeniedException("Conta sem vinculo valido");
+        int vinculos = (conta.getUsuario() != null ? 1 : 0)
+                + (conta.getFuncionario() != null ? 1 : 0)
+                + (conta.getOng() != null ? 1 : 0);
+        if (vinculos != 1) throw new AccessDeniedException("Conta sem vinculo valido");
         if (conta.getUsuario() != null)
             return new com.magalu.devolucao.dto.SessaoResponse(conta.getUsuario().getNome(), "CLIENTE", null, null);
-        var funcionario = conta.getFuncionario();
-        return new com.magalu.devolucao.dto.SessaoResponse(funcionario.getNome(), "FUNCIONARIO",
-                funcionario.getLoja().getId(), funcionario.getLoja().getNome());
+        if (conta.getFuncionario() != null) {
+            var funcionario = conta.getFuncionario();
+            return new com.magalu.devolucao.dto.SessaoResponse(funcionario.getNome(), "FUNCIONARIO",
+                    funcionario.getLoja().getId(), funcionario.getLoja().getNome());
+        }
+        return new com.magalu.devolucao.dto.SessaoResponse(conta.getOng().getNome(), "ONG", null, null);
     }
 }
