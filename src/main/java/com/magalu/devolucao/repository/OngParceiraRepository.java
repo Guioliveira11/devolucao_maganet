@@ -7,6 +7,4 @@ import java.util.List;
 
 public interface OngParceiraRepository extends JpaRepository<OngParceira, Long> {
     List<OngParceira> findByAtivaTrueAndCategoriasAceitasContaining(String categoria);
-
-    boolean existsByCnpj(String cnpj);
 }
