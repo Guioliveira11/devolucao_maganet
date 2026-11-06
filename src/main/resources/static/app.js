@@ -2110,6 +2110,128 @@ $('#login-form').addEventListener('submit', (event) => {
   });
 });
 
+//Recuperação de senha
+const recoveryPanel = $('#recovery-panel');
+const resetPanel = $('#reset-panel');
+const loginForm = $('#login-form');
+const loginHelp = $('#login-help');
+let recoveryToken = new URLSearchParams(window.location.search).get('token');
+
+function showLoginForm() {
+  loginForm.hidden = false;
+  recoveryPanel.hidden = true;
+  resetPanel.hidden = true;
+  loginHelp.hidden = false;
+}
+
+function showRecoveryForm() {
+  loginForm.hidden = true;
+  recoveryPanel.hidden = false;
+  resetPanel.hidden = true;
+  loginHelp.hidden = true;
+  $('#recovery-message').hidden = true;
+  $('#recovery-email').focus();
+}
+
+function showResetForm() {
+  loginForm.hidden = true;
+  recoveryPanel.hidden = true;
+  resetPanel.hidden = false;
+  loginHelp.hidden = true;
+  $('#reset-message').hidden = true;
+}
+
+$('#show-recovery').addEventListener('click', (event) => {
+  event.preventDefault();
+  showRecoveryForm();
+});
+
+$('#back-to-login').addEventListener('click', showLoginForm);
+$('#reset-back-to-login').addEventListener('click', () => {
+  recoveryToken = null;
+  history.replaceState({}, '', '/');
+  showLoginForm();
+});
+
+$('#recovery-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const button = event.target.querySelector('[type=submit]');
+  whileBusy(button, async () => {
+    const message = $('#recovery-message');
+    message.hidden = true;
+    try {
+      const result = await api('/senha/recuperar', {
+        method: 'POST', body: { email: $('#recovery-email').value.trim() },
+      });
+      message.textContent = result.mensagem;
+      message.classList.remove('error-message');
+      message.hidden = false;
+      event.target.reset();
+    } catch (error) {
+      message.textContent = error.message;
+      message.classList.add('error-message');
+      message.hidden = false;
+    }
+  });
+});
+
+$('#reset-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const button = event.target.querySelector('[type=submit]');
+  whileBusy(button, async () => {
+    const message = $('#reset-message');
+    message.hidden = true;
+    const password = $('#new-password').value;
+    if (password !== $('#confirm-password').value) {
+      message.textContent = 'As senhas não coincidem.';
+      message.classList.add('error-message');
+      message.hidden = false;
+      return;
+    }
+    try {
+      const result = await api('/senha/redefinir', {
+        method: 'POST', body: { token: recoveryToken, novaSenha: password },
+      });
+      message.textContent = result.mensagem;
+      message.classList.remove('error-message');
+      message.hidden = false;
+      event.target.reset();
+      recoveryToken = null;
+      history.replaceState({}, '', '/');
+      setTimeout(showLoginForm, 1800);
+    } catch (error) {
+      message.textContent = error.message;
+      message.classList.add('error-message');
+      message.hidden = false;
+    }
+  });
+});
+
+if (recoveryToken) {
+  showResetForm();
+  api('/senha/validar', { method: 'POST', body: { token: recoveryToken } })
+    .then((result) => {
+      if (!result.valido) {
+        $('#reset-message').textContent = 'Este link é inválido ou expirou. Solicite uma nova recuperação.';
+        $('#reset-message').classList.add('error-message');
+        $('#reset-message').hidden = false;
+        $('#reset-form').hidden = true;
+      }
+    })
+    .catch(() => {
+      $('#reset-message').textContent = 'Não foi possível validar o link. Tente novamente.';
+      $('#reset-message').classList.add('error-message');
+      $('#reset-message').hidden = false;
+    });
+}
+
+$('#logout').addEventListener('click', (event) => whileBusy(event.currentTarget, async () => {
+  await api('/sessao/sair', { method: 'POST' });
+  showLogin();
+}));
+
+
+
 // ---------------------------------------------------------------------------
 // Cadastro (cliente, funcionário e ONG)
 // ---------------------------------------------------------------------------
