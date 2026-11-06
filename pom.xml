@@ -22,6 +22,11 @@
         <zxing.version>3.5.3</zxing.version>
     </properties>
 
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-mail</artifactId>
+</dependency>
+
     <dependencies>
         <!-- Web / REST -->
         <dependency>
