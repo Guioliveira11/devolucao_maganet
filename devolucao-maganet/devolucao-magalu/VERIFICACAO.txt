@@ -1,0 +1,59 @@
+Adendo — pacote portátil, 27/09/2026
+Incluídos AGENTS.md, CLAUDE.md, INICIAR_AQUI.md e demonstração opcional em demo/.
+A demonstração agora acompanha este pacote com QR PNG real, gerado e decodificado
+com ZXing. Verificados HTTP 200 da página e imagem QR da API fictícia executando
+o módulo a partir de outra pasta. Não depende dos caminhos da máquina original.
+Os comentários abaixo sobre placeholder e preview fora do pacote descrevem a
+verificação anterior. O backend e seus testes permanecem sem alterações neste
+empacotamento. Não foi validada abertura nos editores Antigravity/Claude Code.
+
+Verificação — 27/09/2026 — site responsivo e design do moodboard
+
+Java 17.0.20.1 / Maven 3.9.9 / Windows.
+Comando: mvn --offline --batch-mode test, com repositório Maven local.
+BUILD SUCCESS. 95 testes unitários/API aprovados, zero falhas/erros.
+Suite completa executada em 26/09. Em 27/09, SessaoWebTest foi reexecutado
+após incluir as fontes locais e suas permissões públicas: 8 testes aprovados.
+38 execuções de integração opcionais puladas (19 cenários, duas variantes).
+PostgreSQL real não foi executado nesta atualização. A recomendação de tornar
+esses testes obrigatórios continua excluída, conforme solicitado.
+
+Testes incluem autenticação por sessão, CSRF, perfil sem credenciais,
+logout, conta inativa, loja do funcionário, recursos estáticos públicos,
+proteção dos dados e serviço de busca paginada de lojas.
+As correções anteriores de jobs, paginação, datas e erros permanecem incluídas.
+
+Verificação da interface no navegador com API fictícia de teste:
+- larguras 320, 390 e 1280 pixels; sem overflow horizontal nas medições;
+- novo design conferido em 27/09, com Poppins local, cabeçalho azul,
+  ações verdes e cartões compactos, incluindo larguras 320 e 390;
+- login de cliente/funcionário, criação com confirmação e seleção de loja;
+- tela de detalhe e histórico, preferências, leitura de aviso, logout;
+- destino com status pendente e recebimento por UUID com confirmação.
+Nenhum erro de console foi registrado na consulta ao final dos fluxos.
+O preview usou dados fictícios e não integra o pacote. O QR de preview era
+um placeholder; geração do QR pertence aos testes de backend.
+Não houve validação em aparelhos físicos, câmera, geolocalização ou Safari.
+
+Migrações V1–V4, pom.xml e condições dos testes de integração preservados
+byte a byte em relação ao ZIP anterior. Sintaxe de app.js verificada com Node.
+O perfil prod marca o cookie Secure, mas requer HTTPS configurado na hospedagem.
+Consulte USO_NO_CELULAR.md para execução, recursos e limitações.
+
+com.magalu.devolucao.config.ConfiguracaoJobsTest: total=5, falhas=0, erros=0, pulados=0
+com.magalu.devolucao.config.JobsTest: total=4, falhas=0, erros=0, pulados=0
+com.magalu.devolucao.controller.ErrosApiTest: total=4, falhas=0, erros=0, pulados=0
+com.magalu.devolucao.controller.LojaControllerTest: total=1, falhas=0, erros=0, pulados=0
+com.magalu.devolucao.controller.SegurancaApiTest: total=13, falhas=0, erros=0, pulados=0
+com.magalu.devolucao.controller.SessaoWebTest: total=8, falhas=0, erros=0, pulados=0
+com.magalu.devolucao.integration.DevolucaoPostgresLocalTest: total=19, falhas=0, erros=0, pulados=19
+com.magalu.devolucao.integration.DevolucaoPostgresTest: total=19, falhas=0, erros=0, pulados=19
+com.magalu.devolucao.service.AcompanhamentoServiceTest: total=4, falhas=0, erros=0, pulados=0
+com.magalu.devolucao.service.DevolucaoServiceTest: total=25, falhas=0, erros=0, pulados=0
+com.magalu.devolucao.service.IdentidadeServiceTest: total=5, falhas=0, erros=0, pulados=0
+com.magalu.devolucao.service.LojaConsultaServiceTest: total=2, falhas=0, erros=0, pulados=0
+com.magalu.devolucao.service.MelhoriasTest: total=5, falhas=0, erros=0, pulados=0
+com.magalu.devolucao.service.NotificacaoServiceTest: total=8, falhas=0, erros=0, pulados=0
+com.magalu.devolucao.service.QRCodeServiceTest: total=7, falhas=0, erros=0, pulados=0
+com.magalu.devolucao.service.SolicitacaoDevolucaoTest: total=3, falhas=0, erros=0, pulados=0
+com.magalu.devolucao.service.TransacaoLotesTest: total=1, falhas=0, erros=0, pulados=0

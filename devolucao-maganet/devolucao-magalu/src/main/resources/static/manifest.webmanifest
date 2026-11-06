@@ -1,0 +1,17 @@
+{
+  "name": "Maga Next · Troca e Devolução",
+  "short_name": "Maga Next",
+  "description": "Devolução Inteligente: solicite trocas e devoluções pelo celular e acompanhe cada etapa.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#EEF4FE",
+  "theme_color": "#2C5FD4",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
