@@ -1,6 +1,0 @@
-# Ative apenas ao servir a aplicação por HTTPS.
-server:
-  servlet:
-    session:
-      cookie:
-        secure: true
