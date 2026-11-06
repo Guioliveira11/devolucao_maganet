@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <defs>
+    <linearGradient id="bgHome" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#EEF4FE"/>
+      <stop offset="100%" stop-color="#DCEBFE"/>
+    </linearGradient>
+    <linearGradient id="bodyHome" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2C5FD4"/>
+      <stop offset="100%" stop-color="#1E42B8"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="240" rx="24" fill="url(#bgHome)"/>
+  <ellipse cx="120" cy="206" rx="50" ry="8" fill="#2C5FD4" opacity="0.12"/>
+  <!-- Jarra / Cafeteira -->
+  <rect x="74" y="48" width="84" height="22" rx="8" fill="#0B153D"/>
+  <path d="M80 70h72l-6 76H86Z" fill="#FFFFFF" stroke="#2C5FD4" stroke-width="3"/>
+  <path d="M84 106h64l-4 40H88Z" fill="#4B84FA" opacity="0.35"/>
+  <path d="M152 80h18a14 14 0 0 1 14 14v18a14 14 0 0 1-14 14h-14" fill="none" stroke="#0B153D" stroke-width="8" stroke-linecap="round"/>
+  <rect x="70" y="146" width="92" height="42" rx="10" fill="url(#bodyHome)"/>
+  <circle cx="116" cy="167" r="7" fill="#12B9CE"/>
+</svg>

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#EEF4FE"/>
+      <stop offset="100%" stop-color="#DCEBFE"/>
+    </linearGradient>
+    <linearGradient id="fabric" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E8F0FC"/>
+    </linearGradient>
+    <pattern id="floral" width="16" height="16" patternUnits="userSpaceOnUse">
+      <circle cx="5" cy="5" r="1.6" fill="#4B84FA" opacity="0.55"/>
+      <circle cx="12" cy="11" r="1.4" fill="#2C5FD4" opacity="0.45"/>
+      <circle cx="11" cy="4" r="1" fill="#A5D5F7" opacity="0.7"/>
+      <circle cx="4" cy="12" r="1.1" fill="#7140E8" opacity="0.35"/>
+    </pattern>
+  </defs>
+  <rect width="240" height="240" rx="24" fill="url(#bg)"/>
+  <ellipse cx="120" cy="214" rx="54" ry="8" fill="#2C5FD4" opacity="0.1"/>
+  <!-- Cabide -->
+  <path d="M120 26c0-6 7-8 9-3 1 3-3 6-9 8m-24 12 24-12 24 12" fill="none" stroke="#6B7280" stroke-width="3" stroke-linecap="round"/>
+  <!-- Vestido Camponesa -->
+  <g stroke="#2C5FD4" stroke-width="2.4" stroke-linejoin="round">
+    <!-- Mangas bufantes -->
+    <path d="M88 52c-14 2-20 14-14 26 4 6 12 6 18 2Z" fill="url(#fabric)"/>
+    <path d="M152 52c14 2 20 14 14 26-4 6-12 6-18 2Z" fill="url(#fabric)"/>
+    <!-- Corpo e saia rodada -->
+    <path d="M92 44c10 7 18 9 28 9s18-2 28-9l6 38-10 18 32 94c-36 10-76 10-112 0l32-94-10-18Z" fill="url(#fabric)"/>
+    <path d="M92 44c10 7 18 9 28 9s18-2 28-9l6 38-10 18 32 94c-36 10-76 10-112 0l32-94-10-18Z" fill="url(#floral)"/>
+    <!-- Cintura marcada e pregas -->
+    <path d="M96 100h48" stroke="#2C5FD4" stroke-width="3"/>
+    <path d="M108 100 94 192M120 100v96M132 100l14 92" stroke="#4B84FA" stroke-width="1.5" opacity="0.5"/>
+    <!-- Babado da barra -->
+    <path d="M68 184c18 6 34 6 52 6s34 0 52-6" fill="none" stroke="#4B84FA" stroke-width="1.8" stroke-dasharray="4 3"/>
+  </g>
+</svg>
