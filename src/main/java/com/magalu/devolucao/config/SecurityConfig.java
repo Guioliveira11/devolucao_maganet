@@ -33,14 +33,11 @@ public class SecurityConfig {
             var conta = contas.findByLogin(login)
                     .orElseThrow(() -> new UsernameNotFoundException("Credenciais invalidas"));
 
-            int vinculos = (conta.getUsuario() != null ? 1 : 0) + (conta.getFuncionario() != null ? 1 : 0)
-                    + (conta.getOng() != null ? 1 : 0);
-            if (vinculos != 1) {
+            if ((conta.getUsuario() == null) == (conta.getFuncionario() == null)) {
                 throw new UsernameNotFoundException("Conta sem vinculo valido");
             }
 
-            String role = conta.getUsuario() != null ? "CLIENTE"
-                    : conta.getFuncionario() != null ? "FUNCIONARIO" : "ONG";
+            String role = conta.getUsuario() != null ? "CLIENTE" : "FUNCIONARIO";
             boolean isLocked = conta.isBloqueada(LocalDateTime.now(clock));
 
             return User.withUsername(conta.getLogin())
@@ -58,12 +55,10 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.GET, "/", "/index.html", "/app.css", "/app.js",
                         "/vendor/jsQR.js", "/fonts/Poppins-Regular.ttf", "/fonts/Poppins-Bold.ttf", 
-                        "/api/v1/csrf", "/manifest.webmanifest", "/icon.svg", "/sw.js", "/assets/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/cadastro/opcoes").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/sessao", "/api/v1/cadastro/cliente",
-                        "/api/v1/cadastro/funcionario", "/api/v1/cadastro/ong").permitAll()
+                        "/api/v1/csrf", "/manifest.webmanifest", "/icon.svg", "/sw.js").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/sessao", "/api/v1/senha/recuperar",
+                        "/api/v1/senha/validar", "/api/v1/senha/redefinir").permitAll()
                 .requestMatchers("/api/v1/funcionario/**").hasRole("FUNCIONARIO")
-                .requestMatchers("/api/v1/ong/**").hasRole("ONG")
                 .requestMatchers("/api/v1/devolucoes/**", "/api/v1/itens/**", "/api/v1/notificacoes/**").hasRole("CLIENTE")
                 .anyRequest().authenticated()
         );

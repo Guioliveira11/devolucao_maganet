@@ -56,6 +56,12 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
+        <!-- Envio de e-mails para recuperação de senha -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- Validacao de DTOs -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

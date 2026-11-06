@@ -1,26 +1,8 @@
 # Sistema de devolução de itens — Magalu
 
-Site responsivo para **clientes** e **funcionários de loja** gerenciarem devoluções de produtos por QR Code.
-Backend em Java 17 + Spring Boot 3.3.4 + PostgreSQL 16; frontend em HTML/CSS/JS nativo, servido pelo próprio backend.
+Para abrir em outro editor ou assistente, comece por [INICIAR_AQUI.md](INICIAR_AQUI.md).
 
-> Vai abrir o projeto em outro editor ou assistente? Comece por [INICIAR_AQUI.md](INICIAR_AQUI.md).
-
-## Como funciona
-
-1. O cliente escolhe um item comprado e uma loja e solicita a devolução. O sistema gera um QR Code com validade.
-2. O cliente leva o item à loja e apresenta o QR.
-3. O funcionário lê o QR (câmera ou código digitado) e confirma o recebimento (`EM_ANALISE`).
-4. O funcionário define o destino: `ESTOQUE`, `REPARO` ou `DOACAO_ONG`. A solicitação fica em `DESTINO_PENDENTE`.
-
-Fluxo de status: `AGUARDANDO_ESCANEAMENTO` → `EM_ANALISE` → `DESTINO_PENDENTE`.
-Também existem `QR_EXPIRADO` (renovável), `CANCELADA` e `CONCLUIDA` (apenas histórico; veja [Pendências](#pendências)).
-
-## Funcionalidades
-
-- **Cliente:** lista paginada de compras, solicitação de devolução, busca de lojas por nome/endereço ou localização, QR de entrega, renovação do QR vencido, cancelamento antes do recebimento, acompanhamento com histórico e avisos internos.
-- **Funcionário:** fila da própria loja (filtros de etapa, destino e tempo), leitura de QR e definição de destino com confirmação.
-- **Avisos internos:** atualizações e lembretes de QR dentro do site, com preferências. Não há e-mail, push ou SMS.
-- **Segurança:** login por sessão (cookie HttpOnly), HTTP Basic para API, CSRF, senhas BCrypt e bloqueio de conta.
+Site responsivo para clientes e funcionários, com backend Java 17, Spring Boot 3.3.4 e PostgreSQL 16. Abra `/` no navegador após iniciar o servidor. Consulte [USO_NO_CELULAR.md](USO_NO_CELULAR.md).
 
 ## Executar
 
@@ -31,178 +13,14 @@ docker compose up -d
 mvn spring-boot:run
 ```
 
-Abra http://localhost:8080/. O Flyway aplica as migrações V1 a V5 automaticamente.
-O projeto usa o Maven instalado (não inclui `mvnw`). As credenciais do `docker-compose.yml` são só para desenvolvimento local.
+O Flyway aplica automaticamente as migrações V1 a V7. O projeto usa Maven instalado; não inclui `mvnw`.
+As credenciais de banco do Compose são para desenvolvimento local.
+Para outro banco, configure `SPRING_DATASOURCE_URL`, `DB_USER` e `DB_PASSWORD`.
 
-Para outro banco, configure:
-
-| Variável | Descrição | Padrão |
-|---|---|---|
-| `SPRING_DATASOURCE_URL` | URL JDBC do PostgreSQL | `jdbc:postgresql://localhost:5432/devolucao_magalu` |
-| `DB_USER` | Usuário do banco | `devolucao` |
-| `DB_PASSWORD` | Senha do banco | `devolucao` |
-| `APP_FUSO_HORARIO` | Fuso de negócio | `America/Sao_Paulo` |
-| `NOTIFICACOES_JOB_ATIVO` | Liga/desliga o job de lembretes | `true` |
-| `SPRING_PROFILES_ACTIVE` | Use `prod` em produção (cookie Secure) | — |
-
-Comandos úteis: `mvn test` (testes) e `mvn package` (gera o JAR em `target/`).
-
-**Demonstração visual (opcional):** `python demo/preview.py` abre uma prévia com dados fictícios em http://127.0.0.1:8770/. Não é o backend real. Veja [demo/README.md](demo/README.md).
-
-**Celular e HTTPS:** veja [USO_NO_CELULAR.md](USO_NO_CELULAR.md). Câmera e localização normalmente exigem HTTPS.
-
-## Contas e autenticação
-
-- Não existe senha padrão nem cadastro público. Contas são criadas por quem administra o banco.
-- Cada registro em `contas_acesso` pertence a **um cliente OU um funcionário**; o perfil vem desse vínculo.
-- Contas inativas são recusadas. Após **5 falhas de senha**, a conta é bloqueada por **15 minutos** (migração V5).
-- Usuários, pedidos, produtos, itens, lojas e funcionários precisam existir no banco; este projeto não tem endpoints para cadastrá-los.
-- Use HTTPS fora do ambiente local e não compartilhe uma conta entre vários funcionários: o login identifica o autor de cada ação na auditoria.
-
-### Criando uma conta
-
-1. Gere o classpath:
-
-```bash
-mvn test-compile org.apache.maven.plugins:maven-dependency-plugin:3.7.1:build-classpath -Dmdep.outputFile=target/classpath.txt
-```
-
-2. Gere o hash BCrypt (a ferramenta pede a senha sem exibi-la).
-
-Linux/macOS:
-
-```bash
-java -cp "target/test-classes:target/classes:$(cat target/classpath.txt)" com.magalu.devolucao.tools.GerarSenhaHash
-```
-
-Windows (PowerShell):
-
-```powershell
-$cp = Get-Content target/classpath.txt -Raw
-java -cp "target/test-classes;target/classes;$cp" com.magalu.devolucao.tools.GerarSenhaHash
-```
-
-3. Insira a conta no banco, com o hash gerado (nunca senha em texto puro):
-
-```sql
--- Cliente: usuario_id precisa existir em usuarios.
-INSERT INTO contas_acesso (login, senha_hash, usuario_id)
-VALUES ('cliente.exemplo', '<HASH_BCRYPT_GERADO>', 1);
-
--- Funcionário: funcionario_id precisa existir em funcionarios.
-INSERT INTO contas_acesso (login, senha_hash, funcionario_id)
-VALUES ('funcionario.exemplo', '<OUTRO_HASH_BCRYPT_GERADO>', 1);
-```
-
-## API
-
-Base: `/api/v1`. Documentação interativa em http://localhost:8080/swagger-ui.html (exige autenticação).
-
-### Sessão e lojas
-
-| Método | Rota | Acesso | Descrição |
-|---|---|---|---|
-| GET | `/csrf` | Público | Token CSRF para login e escritas |
-| POST | `/sessao` | Público + CSRF | Login (formulário `username` e `password`) |
-| GET | `/sessao` | Autenticado | Nome, perfil e loja da conta |
-| POST | `/sessao/sair` | Sessão + CSRF | Encerra a sessão |
-| GET | `/lojas?busca=&pagina=0&tamanho=20` | Autenticado | Busca paginada de lojas ativas |
-| GET | `/lojas/proximas?latitude=&longitude=&raioKm=` | Autenticado | Lojas ativas próximas |
-
-### Cliente
-
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/itens?pagina=0&tamanho=20` | Seus itens comprados, paginados |
-| POST | `/devolucoes` | Cria solicitação: `{"itemCompradoId":1,"lojaId":1}` |
-| GET | `/devolucoes?status=&pagina=0&tamanho=20` | Lista suas solicitações |
-| GET | `/devolucoes/{id}` | Detalhe, incluindo a imagem do QR |
-| GET | `/devolucoes/{id}/acompanhamento` | Produto, pedido, loja, prazo e datas do fluxo |
-| GET | `/devolucoes/{id}/historico` | Eventos públicos (sem dados internos de auditoria) |
-| POST | `/devolucoes/{id}/qrcode/renovar` | Renova o QR vencido (se ainda válido, devolve o mesmo) |
-| POST | `/devolucoes/{id}/cancelar` | Cancela antes do recebimento |
-| GET | `/notificacoes?naoLidas=&pagina=0&tamanho=20` | Caixa de avisos |
-| POST | `/notificacoes/{id}/ler` | Marca como lido (204) |
-| GET / PUT | `/notificacoes/preferencias` | Consulta/atualiza `{"atualizacoes":true,"lembretesQr":false}` |
-
-### Funcionário
-
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/funcionario/devolucoes?status=&destino=&minimoHoras=` | Fila da loja do funcionário, mais antigos primeiro |
-| POST | `/funcionario/devolucoes/escanear` | Recebe o item: `{"token":"UUID-LIDO-NO-QR"}` |
-| POST | `/funcionario/devolucoes/{id}/destino` | `{"destino":"ESTOQUE"}`, `"REPARO"` ou `"DOACAO_ONG"` |
-
-Regras gerais:
-
-- Todas as listas começam na página 0, com tamanho padrão 20 e máximo 100, e respondem `{ "itens": [...], "pagina": 0, "tamanho": 20, "total": N }`.
-- **Identidade nunca vem do corpo da requisição.** Dono, funcionário e loja são obtidos da conta autenticada; não envie `usuarioId` nem `funcionarioId`.
-- Dados de outra pessoa retornam `404`, sem revelar que existem.
-
-Códigos de erro: `400` parâmetro/DTO inválido; `401` sem credenciais; `403` sem permissão ou CSRF; `404` inexistente; `409` loja inativa, duplicidade ou estado/prazo incompatível; `410` QR vencido, cancelado ou usado; `500` falha técnica (mensagem genérica, detalhes só no log).
-
-### CSRF e testes manuais (Postman/curl)
-
-O CSRF fica habilitado mesmo com HTTP Basic:
-
-1. Configure Basic Auth com a conta desejada.
-2. `GET http://localhost:8080/api/v1/csrf` e preserve o cookie `JSESSIONID`.
-3. Envie o `token` retornado no header indicado por `headerName` (normalmente `X-CSRF-TOKEN`) em cada POST/PUT.
-4. Inclua também Basic Auth e `Content-Type: application/json`.
-
-Leitura simples: `curl -u cliente.exemplo http://localhost:8080/api/v1/itens` (o curl pede a senha).
-
-## Regras de negócio
-
-- Uma solicitação corresponde ao **item comprado inteiro**; devolução parcial não é suportada.
-- Solicitação aberta, expirada ou concluída bloqueia nova solicitação do mesmo item. Depois de cancelada, uma nova é permitida se o prazo ainda valer. Um índice único parcial e bloqueio no banco protegem contra requisições simultâneas.
-- Loja inativa é recusada ao criar, renovar, escanear e definir destino.
-- QR substituído, usado ou cancelado não permite novo recebimento. Um QR ainda válido pode ser recebido mesmo depois do último dia de solicitação (política mantida).
-- O cliente só cancela em `AGUARDANDO_ESCANEAMENTO` ou `QR_EXPIRADO`. Repetir um cancelamento é permitido e não duplica auditoria.
-- **Destino definido não conclui a devolução.** O status vai para `DESTINO_PENDENTE`, sem `dataConclusao`. Nada é confirmado automaticamente.
-- Na doação, é escolhida a ONG ativa compatível de menor ID (sem balanceamento de capacidade) e registrada em `ongDestinatariaId`.
-- Qualquer funcionário da loja pode definir o destino; a auditoria registra quem executou.
-- Busca de lojas: latitude entre -90 e 90, longitude entre -180 e 180, raio entre 0 (exclusive) e 200 km; valores inválidos retornam 400. A distância é calculada no PostgreSQL sem índice espacial (para grande volume, considere PostGIS).
-- Datas usam `Clock` injetável no fuso `APP_FUSO_HORARIO`. Os campos são `TIMESTAMP` sem fuso; ao atualizar um banco existente, use o mesmo fuso dos dados anteriores. Não há conversão automática do histórico.
-
-## Jobs em segundo plano
-
-Ambos processam em lotes, cada lote em transação própria, com `SKIP LOCKED` para workers concorrentes e logs de quantidade, pendências e duração.
-
-- **Expiração de QR:** marca códigos vencidos como `QR_EXPIRADO`.
-- **Lembretes de QR:** avisa antes do vencimento, no máximo um lembrete por código, respeitando a preferência do cliente.
-
-```yaml
-app:
-  notificacoes:
-    job-ativo: true
-    antecedencia-minutos: 120   # 1–1440; deve ser maior que intervalo-ms
-    intervalo-ms: 300000
-    tamanho-lote: 200
-    max-lotes-por-execucao: 50
-  qrcode:
-    validade-horas: 24
-    tamanho-px: 300
-    job-expiracao-ms: 300000
-    tamanho-lote-expiracao: 100
-    max-lotes-expiracao: 50
-```
-
-Lotes: 1–1000. Intervalos: mínimo 1000 ms. Configuração incompatível impede a aplicação de iniciar. Não há lembrete retroativo se a aplicação ficar desligada até o QR vencer.
-
-## Banco de dados
-
-Migrações Flyway em `src/main/resources/db/migration`. **Não altere migrações já publicadas**; mudanças de schema exigem uma nova.
-
-| Migração | Conteúdo |
-|---|---|
-| V1 | Schema inicial |
-| V2 | Contas de acesso e índice que impede devoluções duplicadas |
-| V3 | Destino pendente e ONG destinatária |
-| V4 | Data de recebimento, notificações e preferências |
-| V5 | Bloqueio de conta por tentativas de login falhas |
-
-**Atenção na V2:** em banco antigo com várias solicitações não canceladas para o mesmo item, a migração falha. Nenhum dado é apagado automaticamente. Para localizar os conflitos:
+V2 cria as contas de acesso e um índice que bloqueia devoluções duplicadas.
+Se houver várias solicitações não canceladas para o mesmo item em um banco antigo,
+a migração falhará: revise esses registros antes de aplicá-la. Nenhum histórico é
+apagado automaticamente. Consulta para localizar conflitos:
 
 ```sql
 SELECT item_comprado_id, COUNT(*)
@@ -211,7 +29,147 @@ WHERE status <> 'CANCELADA'
 GROUP BY item_comprado_id HAVING COUNT(*) > 1;
 ```
 
-**Atenção na V4:** o recebimento de registros antigos é recuperado do primeiro evento `QR_ESCANEADO`. Sem essa evidência, a data fica nula (o registro vai para o fim da fila).
+## Contas e autenticação
+
+O site usa login por sessão e cookie HttpOnly. HTTP Basic continua disponível para clientes da API. A página de entrada, seus arquivos estáticos e a obtenção do token CSRF são públicos; os dados exigem autenticação. Use HTTPS fora do ambiente local.
+Não existe senha padrão nem cadastro público de contas.
+Cada registro em `contas_acesso` está vinculado a **um cliente OU um funcionário**.
+O perfil é derivado desse vínculo; a API não aceita um perfil escolhido pelo cliente.
+A senha é armazenada como BCrypt e contas inativas são recusadas. A recuperação de senha atende clientes e funcionários por e-mail; funcionários precisam ter o campo `funcionarios.email` preenchido.
+
+Os registros de usuários, pedidos, produtos, itens, lojas e funcionários devem existir
+no banco. Os endpoints de cadastro desses dados não fazem parte deste projeto.
+Para criar uma conta, gere o hash localmente:
+
+```bash
+mvn test-compile org.apache.maven.plugins:maven-dependency-plugin:3.7.1:build-classpath -Dmdep.outputFile=target/classpath.txt
+```
+
+Em um terminal Linux/macOS:
+
+```bash
+java -cp "target/test-classes:target/classes:$(cat target/classpath.txt)" com.magalu.devolucao.tools.GerarSenhaHash
+```
+
+Em um terminal PowerShell no Windows:
+
+```powershell
+$cp = Get-Content target/classpath.txt -Raw
+java -cp "target/test-classes;target/classes;$cp" com.magalu.devolucao.tools.GerarSenhaHash
+```
+
+A ferramenta pede a senha sem exibi-la e imprime seu hash. Substitua os valores abaixo
+pelos dados corretos e pelo hash gerado (não guarde senha em texto puro no SQL):
+
+```sql
+-- Conta de cliente: usuario_id precisa existir em usuarios.
+INSERT INTO contas_acesso (login, senha_hash, usuario_id)
+VALUES ('cliente.exemplo', '<HASH_BCRYPT_GERADO>', 1);
+
+-- Conta de funcionário: funcionario_id precisa existir em funcionarios.
+INSERT INTO contas_acesso (login, senha_hash, funcionario_id)
+VALUES ('funcionario.exemplo', '<OUTRO_HASH_BCRYPT_GERADO>', 1);
+
+-- Cadastre o e-mail do funcionário para habilitar a recuperação de senha.
+UPDATE funcionarios SET email = 'funcionario@empresa.com' WHERE id = 1;
+```
+
+Faça o provisionamento por acesso administrativo ao banco. Não distribua uma conta
+única entre vários funcionários: o login identifica o autor de cada ação.
+
+## Recuperação de senha por e-mail
+
+A tela de login oferece o link **Esqueceu sua senha?** para clientes e funcionários. O link enviado por e-mail expira em 15 minutos, é de uso único e o token é armazenado no banco somente como hash SHA-256. A senha nova é validada com no mínimo 8 caracteres e armazenada com BCrypt.
+
+Configure o servidor SMTP antes de usar a funcionalidade em ambiente real. Exemplo de variáveis de ambiente (não coloque credenciais diretamente no repositório):
+
+```bash
+APP_PUBLIC_URL=https://seu-dominio.com
+MAIL_HOST=smtp.seuprovedor.com
+MAIL_PORT=587
+MAIL_USERNAME=nao-responda@seu-dominio.com
+MAIL_PASSWORD=sua-senha-de-aplicativo
+MAIL_SMTP_AUTH=true
+MAIL_SMTP_STARTTLS=true
+```
+
+Em desenvolvimento, `docker compose up -d` também inicia o Mailpit: a aplicação envia por `localhost:1025` e você pode visualizar os e-mails em `http://localhost:8025`. A migração V7 adiciona `funcionarios.email` sem preencher registros antigos; atualize os e-mails existentes antes de esperar que esses funcionários consigam recuperar a senha. A resposta da solicitação é genérica, para não revelar se um endereço está cadastrado.
+
+## Endpoints
+
+| Método | Rota | Perfil | Corpo / comportamento |
+|---|---|---|---|
+| GET | `/api/v1/csrf` | Público | Retorna o token CSRF para login e escritas |
+| POST | `/api/v1/sessao` | Público, com CSRF | Formulário `username` e `password`; cria sessão |
+| POST | `/api/v1/senha/recuperar` | Público, com CSRF | `{"email":"pessoa@exemplo.com"}`; envia link se houver conta ativa |
+| POST | `/api/v1/senha/validar` | Público, com CSRF | `{"token":"..."}`; informa se o link ainda é válido |
+| POST | `/api/v1/senha/redefinir` | Público, com CSRF | `{"token":"...","novaSenha":"..."}`; altera a senha |
+| GET | `/api/v1/sessao` | Autenticado | Nome, perfil e loja da conta |
+| POST | `/api/v1/sessao/sair` | Sessão, com CSRF | Encerra sessão |
+| GET | `/api/v1/lojas?busca=&pagina=0&tamanho=20` | Autenticado | Busca paginada de lojas ativas por nome ou endereço |
+| GET | `/api/v1/itens` | Cliente | Lista paginada dos seus itens; `pagina=0&tamanho=20` (máximo 100) |
+| GET | `/api/v1/lojas/proximas?latitude=0&longitude=0` | Autenticado | Lista lojas ativas próximas |
+| POST | `/api/v1/devolucoes` | Cliente | `{"itemCompradoId":1,"lojaId":1}` |
+| GET | `/api/v1/devolucoes/{id}` | Cliente dono | Consulta sua solicitação |
+| POST | `/api/v1/devolucoes/{id}/qrcode/renovar` | Cliente dono | Sem corpo; renova código vencido |
+| POST | `/api/v1/devolucoes/{id}/cancelar` | Cliente dono | Sem corpo; cancela antes do recebimento |
+| POST | `/api/v1/funcionario/devolucoes/escanear` | Funcionário da loja | `{"token":"UUID-LIDO-NO-QR"}` |
+| POST | `/api/v1/funcionario/devolucoes/{id}/destino` | Funcionário da loja | `{"destino":"ESTOQUE"}`, `REPARO` ou `DOACAO_ONG` |
+
+**Mudança nos corpos das requisições:** não envie mais `usuarioId` ou `funcionarioId`.
+Esses campos foram removidos dos DTOs. Campos extras enviados por clientes antigos
+são ignorados pela configuração padrão do Jackson e jamais definem a identidade.
+O dono é obtido pela conta autenticada; o funcionário e sua loja também.
+Qualquer funcionário autenticado da loja escolhida pode definir o destino, mas a
+auditoria registra quem efetivamente executou essa ação.
+
+### CSRF e chamadas de teste
+
+A proteção CSRF permanece habilitada, inclusive com HTTP Basic. No Postman:
+
+1. Configure Basic Auth com a conta correta.
+2. Faça `GET http://localhost:8080/api/v1/csrf`.
+3. Preserve o cookie `JSESSIONID` retornado (Postman gerencia cookies).
+4. Copie `token` da resposta e envie-o no header indicado por `headerName`
+   (normalmente `X-CSRF-TOKEN`) em cada POST da mesma sessão.
+5. Envie também Basic Auth e `Content-Type: application/json` nas chamadas com JSON.
+
+Exemplo de leitura via terminal (o curl pedirá a senha):
+
+```bash
+curl -u cliente.exemplo http://localhost:8080/api/v1/itens
+```
+
+Swagger: `http://localhost:8080/swagger-ui.html`, também exige autenticação.
+Para testar POST pela interface Swagger, será necessário fornecer o token CSRF;
+o fluxo Postman acima é o caminho documentado para os testes manuais.
+
+## Regras corrigidas
+
+- Um cliente só cria, consulta, renova ou cancela suas próprias devoluções.
+- Loja inativa é recusada ao criar, renovar, escanear e definir destino.
+- Renovação só ocorre em `AGUARDANDO_ESCANEAMENTO` ou `QR_EXPIRADO`, dentro do prazo
+  do item. Funciona mesmo antes de o job atualizar o status para `QR_EXPIRADO`.
+- Se o QR ainda está válido, renovar devolve o mesmo código, sem gerar outro.
+- Um QR substituído, usado ou cancelado não permite novo recebimento.
+- O cliente cancela apenas antes do recebimento (`AGUARDANDO_ESCANEAMENTO` ou
+  `QR_EXPIRADO`). Repetir um cancelamento já realizado é permitido e não duplica
+  auditoria. Após `EM_ANALISE` ou `CONCLUIDA`, o cliente não pode cancelar.
+- Uma solicitação corresponde ao **item comprado inteiro, com toda a quantidade**.
+  Devolução parcial não está modelada nesta versão.
+- Solicitação aberta, expirada ou concluída bloqueia uma nova para o mesmo item.
+  Depois de cancelada, uma nova é permitida se o prazo ainda estiver válido.
+- Criação usa bloqueio do item no banco e índice único parcial para proteger contra
+  requisições simultâneas. Outras alterações bloqueiam a solicitação enquanto a
+  transação está em andamento.
+- O job de expiração processa somente códigos vencidos ainda ativos e revalida a
+  solicitação sob bloqueio; um código antigo não invalida um código novo.
+- Respostas são montadas dentro da transação para carregar os dados necessários.
+- Os campos de texto longo do QR e da auditoria foram alinhados com `TEXT` no SQL.
+
+Respostas comuns: `401` sem credenciais válidas; `403` sem permissão ou CSRF;
+`404` para registro inexistente; `409` para loja inativa, duplicidade ou estado/prazo
+incompatível; `410` para QR vencido, cancelado ou já utilizado; `400` para DTO inválido.
 
 ## Testes
 
@@ -219,51 +177,73 @@ GROUP BY item_comprado_id HAVING COUNT(*) > 1;
 mvn test
 ```
 
-Os testes unitários e de API cobrem regras de negócio, identidade, perfis, BCrypt, CSRF, sessão, propriedade dos dados, renovação, cancelamento, jobs e paginação.
+Os testes unitários e de API verificam regras, identidade, perfil, senha BCrypt,
+CSRF, propriedade dos dados, renovação e cancelamento.
+`DevolucaoPostgresTest` usa Testcontainers e PostgreSQL 16 para validar migrações,
+persistência, concorrência, acompanhamento, fila e notificações. Exige Docker ativo
+e acesso à imagem `postgres:16-alpine`; sem Docker, esses testes são pulados.
+Há também execução opcional em PostgreSQL descartável dedicado, documentada em
+NOVIDADES.md. Verifique sempre o campo **Skipped** do resultado do Maven.
 
-Os testes de integração PostgreSQL (19 cenários, em duas variantes) são **opcionais**:
+A configuração Mockito usa `mock-maker-subclass`, pois os testes não precisam de
+mocks de classes finais nem de anexar um agente à JVM.
 
-- **Com Docker:** `DevolucaoPostgresTest` usa Testcontainers com `postgres:16-alpine`.
-- **Sem Docker:** aponte para um banco dedicado:
+## Escopo ainda pendente
 
-  ```powershell
-  $env:DEVOLUCAO_TEST_DB_URL = 'jdbc:postgresql://localhost:5432/devolucao_teste'
-  $env:DEVOLUCAO_TEST_DB_USER = 'usuario_de_teste'
-  $env:DEVOLUCAO_TEST_DB_PASSWORD = 'senha_do_banco_de_teste'
-  mvn test
-  ```
+As integrações reais de estoque, ordem de reparo e envio para ONG continuam como
+`TODO`. Não foram implementadas nesta correção. Também não há frontend, cadastro
+público de contas, devolução parcial nem notificações por e-mail/push.
 
-  ⚠️ A suíte **apaga os dados das tabelas** entre os testes. Use apenas um PostgreSQL descartável, nunca produção.
 
-Sem Docker e sem URL, esses testes são pulados: confira sempre o campo **Skipped** do Maven. O resultado da última verificação está em [VERIFICACAO.txt](VERIFICACAO.txt). O Mockito usa `mock-maker-subclass`.
+## Atualização de 19/09/2026
 
-## Pendências
+- Definir destino agora muda de `EM_ANALISE` para `DESTINO_PENDENTE`, sem preencher
+  `dataConclusao`. Não há confirmação automática nem endpoint público para fingir
+  a execução de estoque, reparo ou coleta. Uma futura integração confiável deverá
+  confirmar a operação antes da conclusão. O estado pendente é persistido na própria
+  solicitação; não existe ainda worker de entrega, fila ou retentativa automática.
+- Doação escolhe a ONG ativa compatível de menor ID (critério determinístico,
+  sem balanceamento de capacidade) e persiste `ong_destinataria_id`.
+  A resposta inclui `ongDestinatariaId` e `dataDefinicaoDestino`.
+- V3 adiciona os campos e índices. Solicitações historicamente `CONCLUIDA` permanecem
+  intactas; a migração não afirma que as integrações antigas foram executadas.
+- A listagem de itens usa paginação, com pedido/produto carregados por EntityGraph.
+  Os bloqueios são consultados em conjunto apenas para os IDs da página retornada.
+  A resposta agora é um objeto com `itens`, `pagina`, `tamanho` e `total`.
+  Veja ATUALIZACAO_2026-09-26.md para adaptar consumidores da API.
+- A busca de lojas valida valores finitos, latitude [-90,90], longitude [-180,180]
+  e raio 0 < raioKm <= 200. Valores inválidos retornam 400. PostgreSQL filtra as lojas
+  ativas usando distância esférica; Java ordena apenas os resultados filtrados.
+  A consulta ainda calcula distâncias no banco sem índice espacial. Para grande
+  volume, considerar PostGIS e índice geográfico.
+- Clock injetável, com `APP_FUSO_HORARIO=America/Sao_Paulo` por padrão. As entidades
+  recebem a data/hora explicitamente. Os campos existentes continuam TIMESTAMP sem
+  fuso; configure o mesmo fuso de negócio usado pelos dados anteriores antes de
+  atualizar um banco existente. Não foi feita conversão silenciosa do histórico.
+- O prazo do item continua validado ao criar/renovar. Um QR ainda válido pode ser
+  recebido depois do último dia de solicitação: essa política anterior foi mantida.
 
-- Integrações reais de estoque, reparo e envio para ONG ainda são `TODO`. Por isso nenhuma devolução vai a `CONCLUIDA` automaticamente.
-- Seleção de ONG por capacidade ou localização.
-- Notificações por e-mail, push ou SMS.
-- Cadastro público de contas e devolução parcial.
-- Validação em aparelhos físicos (câmera e geolocalização).
+### Verificação
 
-Ideias detalhadas em [MELHORIAS_FUTURAS.md](MELHORIAS_FUTURAS.md).
+Execute `mvn test` com Java 17 e Maven, e Docker ativo para os testes PostgreSQL.
+Os testes novos incluem destino pendente, ONG, geolocalização, validação HTTP,
+consulta conjunta de bloqueios e vencimentos com relógio fixo.
+Consulte VERIFICACAO.txt para o resultado efetivamente obtido nesta atualização.
 
-## Estrutura do projeto
 
-```
-src/main/java/com/magalu/devolucao/   controller, service, domain, dto, repository, config, exception
-src/main/resources/static/            frontend (index.html, app.js, app.css, sw.js, fontes Poppins, jsQR)
-src/main/resources/db/migration/      migrações Flyway V1–V5
-src/test/java/                        testes unitários, de API e de integração
-demo/                                 prévia visual opcional em Python
-```
+## Acompanhamento, fila e notificações
 
-## Outros documentos
+Veja [NOVIDADES.md](NOVIDADES.md) para os endpoints e exemplos da nova versão.
+O backend agora oferece acompanhamento paginado pelo cliente, histórico público,
+fila por loja com idade desde recebimento e caixa de notificações com preferências
+e lembretes de QR. Não inclui interface visual, e-mail nem push.
+A migração V4 cria os dados necessários; preserve V1–V3 já aplicadas.
 
-| Arquivo | Conteúdo |
-|---|---|
-| [INICIAR_AQUI.md](INICIAR_AQUI.md) | Guia para abrir o projeto em outro editor/assistente |
-| [USO_NO_CELULAR.md](USO_NO_CELULAR.md) | Acesso por celular, HTTPS, câmera e localização |
-| [NOVIDADES.md](NOVIDADES.md) | Detalhes de acompanhamento, fila e notificações |
-| [ATUALIZACAO_2026-09-26.md](ATUALIZACAO_2026-09-26.md) | Correções de jobs, paginação e erros |
-| [VERIFICACAO.txt](VERIFICACAO.txt) | Resultado dos testes executados |
-| [AGENTS.md](AGENTS.md) / [CLAUDE.md](CLAUDE.md) | Contexto para assistentes de programação |
+
+## Correções de 26/09/2026
+
+Veja [ATUALIZACAO_2026-09-26.md](ATUALIZACAO_2026-09-26.md).
+Inclui validação da janela dos lembretes, jobs em lotes com transações separadas,
+logs de pendências, erros técnicos com HTTP 500, paginação de itens e histórico
+de destino neutro. As migrações V1–V4 não foram alteradas.
+Os testes PostgreSQL continuam opcionais; não foi adicionada exigência ao build.
