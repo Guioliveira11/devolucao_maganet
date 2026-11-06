@@ -1,0 +1,15 @@
+VERSAO CORRIGIDA - DEVOLUCAO MAGALU
+
+Esta pasta contem o projeto completo com as correcoes de codigo relacionadas aos erros de compilacao reportados no Render.
+
+Correcoes incluidas:
+- Metodos ausentes nos repositories Loja, Produto, Usuario, Funcionario, ONG e ContaAcesso.
+- Relacionamento ContaAcesso -> OngParceira e suporte ao perfil ONG em IdentidadeService.
+- Migracao da conta ONG renomeada para V8__conta_ong_cadastro.sql para nao conflitar com V7__recuperacao_senha.sql.
+
+IMPORTANTE:
+- O projeto foi revisado estruturalmente para conter os metodos citados nos erros do Render.
+- Nao foi possivel executar `mvn package` neste ambiente, pois o Maven nao esta instalado. Portanto, esta entrega nao deve ser considerada um build Maven validado.
+- Preserve uma copia da pasta atual antes de substituir qualquer arquivo.
+- Nao envie o ZIP inteiro para o Git. Extraia e copie o conteudo da pasta devolucao-magalu para a pasta raiz do repositorio, conferindo os arquivos antes do commit.
+- Mantenha as variaveis de ambiente ja configuradas no Render/Neon; este pacote nao exige alterar DB_URL, DB_USER ou DB_PASSWORD.

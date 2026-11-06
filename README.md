@@ -13,7 +13,7 @@ docker compose up -d
 mvn spring-boot:run
 ```
 
-O Flyway aplica V1, V2, V3 e V4. O projeto usa Maven instalado; não inclui `mvnw`.
+O Flyway aplica automaticamente as migrações V1 a V7. O projeto usa Maven instalado; não inclui `mvnw`.
 As credenciais de banco do Compose são para desenvolvimento local.
 Para outro banco, configure `SPRING_DATASOURCE_URL`, `DB_USER` e `DB_PASSWORD`.
 
@@ -69,6 +69,8 @@ VALUES ('cliente.exemplo', '<HASH_BCRYPT_GERADO>', 1);
 -- Conta de funcionário: funcionario_id precisa existir em funcionarios.
 INSERT INTO contas_acesso (login, senha_hash, funcionario_id)
 VALUES ('funcionario.exemplo', '<OUTRO_HASH_BCRYPT_GERADO>', 1);
+
+UPDATE funcionarios SET email = 'funcionario@empresa.com' WHERE id = 1;
 ```
 
 Faça o provisionamento por acesso administrativo ao banco. Não distribua uma conta

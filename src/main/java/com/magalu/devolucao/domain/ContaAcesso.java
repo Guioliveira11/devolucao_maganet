@@ -54,6 +54,10 @@ public class ContaAcesso {
     @JoinColumn(name = "funcionario_id", unique = true)
     private Funcionario funcionario;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ong_id", unique = true)
+    private OngParceira ong;
+
     public void registrarFalha(LocalDateTime agora, int maxTentativas, int minutosBloqueio) {
         this.tentativasFalhas++;
         if (this.tentativasFalhas >= maxTentativas) {

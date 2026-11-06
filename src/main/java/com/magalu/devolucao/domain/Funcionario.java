@@ -22,6 +22,9 @@ public class Funcionario {
     @Column(nullable = false, unique = true)
     private String matricula;
 
+    @Column(unique = true)
+    private String email;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "loja_id")
     private Loja loja;
