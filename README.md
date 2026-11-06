@@ -13,7 +13,7 @@ docker compose up -d
 mvn spring-boot:run
 ```
 
-O Flyway aplica automaticamente as migrações V1 a V7. O projeto usa Maven instalado; não inclui `mvnw`.
+O Flyway aplica V1, V2, V3 e V4. O projeto usa Maven instalado; não inclui `mvnw`.
 As credenciais de banco do Compose são para desenvolvimento local.
 Para outro banco, configure `SPRING_DATASOURCE_URL`, `DB_USER` e `DB_PASSWORD`.
 
@@ -35,7 +35,7 @@ O site usa login por sessão e cookie HttpOnly. HTTP Basic continua disponível 
 Não existe senha padrão nem cadastro público de contas.
 Cada registro em `contas_acesso` está vinculado a **um cliente OU um funcionário**.
 O perfil é derivado desse vínculo; a API não aceita um perfil escolhido pelo cliente.
-A senha é armazenada como BCrypt e contas inativas são recusadas. A recuperação de senha atende clientes e funcionários por e-mail; funcionários precisam ter o campo `funcionarios.email` preenchido.
+A senha é armazenada como BCrypt e contas inativas são recusadas.
 
 Os registros de usuários, pedidos, produtos, itens, lojas e funcionários devem existir
 no banco. Os endpoints de cadastro desses dados não fazem parte deste projeto.
@@ -69,31 +69,10 @@ VALUES ('cliente.exemplo', '<HASH_BCRYPT_GERADO>', 1);
 -- Conta de funcionário: funcionario_id precisa existir em funcionarios.
 INSERT INTO contas_acesso (login, senha_hash, funcionario_id)
 VALUES ('funcionario.exemplo', '<OUTRO_HASH_BCRYPT_GERADO>', 1);
-
--- Cadastre o e-mail do funcionário para habilitar a recuperação de senha.
-UPDATE funcionarios SET email = 'funcionario@empresa.com' WHERE id = 1;
 ```
 
 Faça o provisionamento por acesso administrativo ao banco. Não distribua uma conta
 única entre vários funcionários: o login identifica o autor de cada ação.
-
-## Recuperação de senha por e-mail
-
-A tela de login oferece o link **Esqueceu sua senha?** para clientes e funcionários. O link enviado por e-mail expira em 15 minutos, é de uso único e o token é armazenado no banco somente como hash SHA-256. A senha nova é validada com no mínimo 8 caracteres e armazenada com BCrypt.
-
-Configure o servidor SMTP antes de usar a funcionalidade em ambiente real. Exemplo de variáveis de ambiente (não coloque credenciais diretamente no repositório):
-
-```bash
-APP_PUBLIC_URL=https://seu-dominio.com
-MAIL_HOST=smtp.seuprovedor.com
-MAIL_PORT=587
-MAIL_USERNAME=nao-responda@seu-dominio.com
-MAIL_PASSWORD=sua-senha-de-aplicativo
-MAIL_SMTP_AUTH=true
-MAIL_SMTP_STARTTLS=true
-```
-
-Em desenvolvimento, `docker compose up -d` também inicia o Mailpit: a aplicação envia por `localhost:1025` e você pode visualizar os e-mails em `http://localhost:8025`. A migração V7 adiciona `funcionarios.email` sem preencher registros antigos; atualize os e-mails existentes antes de esperar que esses funcionários consigam recuperar a senha. A resposta da solicitação é genérica, para não revelar se um endereço está cadastrado.
 
 ## Endpoints
 
@@ -101,9 +80,6 @@ Em desenvolvimento, `docker compose up -d` também inicia o Mailpit: a aplicaç�
 |---|---|---|---|
 | GET | `/api/v1/csrf` | Público | Retorna o token CSRF para login e escritas |
 | POST | `/api/v1/sessao` | Público, com CSRF | Formulário `username` e `password`; cria sessão |
-| POST | `/api/v1/senha/recuperar` | Público, com CSRF | `{"email":"pessoa@exemplo.com"}`; envia link se houver conta ativa |
-| POST | `/api/v1/senha/validar` | Público, com CSRF | `{"token":"..."}`; informa se o link ainda é válido |
-| POST | `/api/v1/senha/redefinir` | Público, com CSRF | `{"token":"...","novaSenha":"..."}`; altera a senha |
 | GET | `/api/v1/sessao` | Autenticado | Nome, perfil e loja da conta |
 | POST | `/api/v1/sessao/sair` | Sessão, com CSRF | Encerra sessão |
 | GET | `/api/v1/lojas?busca=&pagina=0&tamanho=20` | Autenticado | Busca paginada de lojas ativas por nome ou endereço |

@@ -10,11 +10,5 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  mailpit:
-    image: axllent/mailpit:latest
-    ports:
-      - "1025:1025" # SMTP usado pela aplicação
-      - "8025:8025" # Interface para consultar e-mails de teste
-
 volumes:
   postgres_data:
