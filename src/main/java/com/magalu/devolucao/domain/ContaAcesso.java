@@ -36,6 +36,9 @@ public class ContaAcesso {
     @Column(nullable = false)
     private String senhaHash;
 
+    @Column(name = "email")
+    private String email;
+
     @Builder.Default
     private boolean ativa = true;
 
