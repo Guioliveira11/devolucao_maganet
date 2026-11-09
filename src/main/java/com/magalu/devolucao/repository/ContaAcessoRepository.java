@@ -6,6 +6,10 @@ import java.util.Optional;
 
 public interface ContaAcessoRepository extends JpaRepository<ContaAcesso, Long> {
     Optional<ContaAcesso> findByLogin(String login);
+
     boolean existsByLogin(String login);
 
+    Optional<ContaAcesso> findByEmailIgnoreCase(String email);
+
+    boolean existsByEmailIgnoreCase(String email);
 }
