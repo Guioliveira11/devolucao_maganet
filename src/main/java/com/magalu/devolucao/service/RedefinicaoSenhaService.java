@@ -34,6 +34,12 @@ import java.util.regex.Pattern;
 @Service
 public class RedefinicaoSenhaService {
 
+    public interface EnvioEmailService {
+        boolean configurado();
+
+        boolean enviar(String destinatario, String assunto, String texto);
+    }
+
     private static final Logger log = LoggerFactory.getLogger(RedefinicaoSenhaService.class);
     private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
     private static final Duration VALIDADE = Duration.ofMinutes(30);
