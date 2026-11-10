@@ -98,11 +98,11 @@ public class CadastroService {
         if (telefone != null && telefone.length() > 20) throw new ParametroInvalidoException("Telefone muito longo.");
         String login = validarAcesso(r.login(), r.senha());
 
-        if (usuarios.existsByCpf(cpf) || usuarios.existsByEmailIgnoreCase(email))
+        if (usuarios.existsByCpf(cpf) || usuarios.existsByEmailIgnoreCase(email) || contas.existsByEmailIgnoreCase(email))
             throw new RegraNegocioException("Já existe um cadastro com este CPF ou e-mail.");
 
         var usuario = usuarios.save(Usuario.builder().nome(nome).cpf(cpf).email(email).telefone(telefone).build());
-        contas.save(ContaAcesso.builder().login(login).senhaHash(encoder.encode(r.senha())).usuario(usuario).build());
+        contas.save(ContaAcesso.builder().login(login).senhaHash(encoder.encode(r.senha())).email(email).usuario(usuario).build());
         if (comprasDemo) criarPedidoDemo(usuario);
     }
 
@@ -116,13 +116,14 @@ public class CadastroService {
         if (r.lojaId() == null) throw new ParametroInvalidoException("Escolha a loja onde você trabalha.");
         var loja = lojas.findById(r.lojaId()).filter(l -> l.isAtiva())
                 .orElseThrow(() -> new ParametroInvalidoException("Loja inválida ou inativa."));
+        String email = validarEmail(r.email());
         String login = validarAcesso(r.login(), r.senha());
 
         if (funcionarios.existsByMatricula(matricula))
             throw new RegraNegocioException("Já existe um funcionário com esta matrícula.");
 
         var funcionario = funcionarios.save(Funcionario.builder().nome(nome).matricula(matricula).loja(loja).build());
-        contas.save(ContaAcesso.builder().login(login).senhaHash(encoder.encode(r.senha())).funcionario(funcionario).build());
+        contas.save(ContaAcesso.builder().login(login).senhaHash(encoder.encode(r.senha())).email(email).funcionario(funcionario).build());
     }
 
     @Transactional
@@ -140,12 +141,13 @@ public class CadastroService {
         for (String categoria : escolhidas)
             if (!conhecidas.contains(categoria)) throw new ParametroInvalidoException("Categoria inválida: " + categoria);
 
+        String email = validarEmail(r.email());
         String login = validarAcesso(r.login(), r.senha());
         if (ongs.existsByCnpj(cnpj)) throw new RegraNegocioException("Já existe uma ONG cadastrada com este CNPJ.");
 
         var ong = ongs.save(OngParceira.builder().nome(nome).cnpj(cnpj)
                 .categoriasAceitas(new ArrayList<>(escolhidas)).ativa(true).build());
-        contas.save(ContaAcesso.builder().login(login).senhaHash(encoder.encode(r.senha())).ong(ong).build());
+        contas.save(ContaAcesso.builder().login(login).senhaHash(encoder.encode(r.senha())).email(email).ong(ong).build());
     }
 
     // ------------------------------------------------------------------ apoio
@@ -159,6 +161,13 @@ public class CadastroService {
             throw new ParametroInvalidoException("A senha deve ter de 8 a 72 caracteres.");
         if (contas.existsByLogin(l)) throw new RegraNegocioException("Este login já está em uso. Escolha outro.");
         return l;
+    }
+
+    private String validarEmail(String valor) {
+        String e = valor == null ? "" : valor.trim().toLowerCase();
+        if (e.length() > 255 || !EMAIL.matcher(e).matches()) throw new ParametroInvalidoException("E-mail inválido.");
+        if (contas.existsByEmailIgnoreCase(e)) throw new RegraNegocioException("Já existe uma conta com este e-mail.");
+        return e;
     }
 
     private static String textoObrigatorio(String valor, String campo, int max) {
