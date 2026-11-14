@@ -7,8 +7,8 @@
   <title>Maga Next · Troca e Devolução</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/app.css?v=9">
-  <script src="/app.js?v=9" type="module"></script>
+  <link rel="stylesheet" href="/app.css?v=13">
+  <script src="/app.js?v=13" type="module"></script>
 </head>
 <body>
   <a class="skip-link" href="#content">Ir para o conteúdo</a>
@@ -45,13 +45,14 @@
       </div>
 
       <div class="login-card">
+        <div id="login-main">
         <span class="eyebrow">BEM-VINDO</span>
         <h2>Acesse sua conta</h2>
-        <p class="muted">Entre como cliente para solicitar ou como funcionário para conferir produtos na loja.</p>
+        <p class="muted">Entre como cliente para solicitar, como funcionário para conferir produtos na loja ou como ONG parceira para acompanhar doações.</p>
 
         <form id="login-form">
           <label for="username">Login</label>
-          <input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required maxlength="255" placeholder="Ex.: cliente ou funcionario">
+          <input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required maxlength="255" placeholder="Digite seu login">
 
           <label for="password">Senha</label>
           <div class="password-field">
@@ -59,15 +60,108 @@
             <button type="button" id="show-password" class="text-button" aria-controls="password" aria-pressed="false">Mostrar</button>
           </div>
 
-          <div class="forgot-password">
-            <a href="#" id="forgot-password-link">
-                Esqueceu sua senha?
-            </a>
+          <div class="login-forgot-row">
+            <button type="button" id="forgot-password-link" class="text-button">Esqueci minha senha</button>
           </div>
-<p id="login-error" class="error-message" role="alert" hidden></p>
+          <p id="login-error" class="error-message" role="alert" hidden></p>
           <button class="button primary full" type="submit">Entrar <span aria-hidden="true">→</span></button>
+          <button class="button secondary full login-register-btn" type="button" id="open-register-button">Criar conta</button>
         </form>
-<p class="login-help" id="login-help">Ambiente de demonstração: use <strong>cliente</strong> ou <strong>funcionario</strong> (senha: <strong>teste</strong>).</p>
+        </div>
+
+        <section id="register-panel" aria-labelledby="register-title" hidden>
+          <span class="eyebrow">NOVO CADASTRO</span>
+          <h2 id="register-title" tabindex="-1">Crie sua conta</h2>
+          <p class="muted">Cadastre-se como cliente, funcionário de loja ou ONG parceira.</p>
+          <div class="chips register-type-chips" role="group" aria-label="Tipo de conta">
+            <button type="button" class="chip" data-register-type="CLIENTE" aria-pressed="true">Cliente</button>
+            <button type="button" class="chip" data-register-type="FUNCIONARIO" aria-pressed="false">Funcionário</button>
+            <button type="button" class="chip" data-register-type="ONG" aria-pressed="false">ONG parceira</button>
+          </div>
+          <form id="register-form" novalidate>
+            <input type="hidden" id="register-type" name="tipo" value="CLIENTE">
+
+            <label for="register-name" id="register-name-label">Nome completo</label>
+            <input id="register-name" name="nome" required maxlength="150" placeholder="Seu nome completo">
+
+            <div id="register-client-fields">
+              <label for="register-cpf">CPF (apenas números)</label>
+              <input id="register-cpf" name="cpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00">
+              <label for="register-phone">Telefone (opcional)</label>
+              <input id="register-phone" name="telefone" type="tel" maxlength="20" placeholder="(11) 99999-9999">
+            </div>
+
+            <div id="register-employee-fields" hidden>
+              <label for="register-matricula">Matrícula</label>
+              <input id="register-matricula" name="matricula" maxlength="50" placeholder="Ex.: MAT-1020">
+              <label for="register-store">Loja de atuação</label>
+              <select id="register-store" name="lojaId">
+                <option value="">Selecione a loja</option>
+              </select>
+              <label for="register-emp-invite">Código de convite (Funcionário)</label>
+              <input id="register-emp-invite" name="codigoConviteFuncionario" autocomplete="off" placeholder="Informe o código fornecido pela loja">
+            </div>
+
+            <div id="register-ong-fields" hidden>
+              <label for="register-cnpj">CNPJ (apenas números)</label>
+              <input id="register-cnpj" name="cnpj" inputmode="numeric" maxlength="18" placeholder="00.000.000/0001-00">
+              <label>Categorias aceitas para doação</label>
+              <div id="register-ong-categories" class="register-categories"></div>
+              <label for="register-ong-invite">Código de convite (ONG)</label>
+              <input id="register-ong-invite" name="codigoConviteOng" autocomplete="off" placeholder="Informe o código de parceria">
+            </div>
+
+            <label for="register-email">E-mail (usado para recuperação de senha)</label>
+            <input id="register-email" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" required maxlength="255" placeholder="voce@exemplo.com">
+
+            <label for="register-login">Login de acesso</label>
+            <input id="register-login" name="login" autocomplete="username" autocapitalize="none" spellcheck="false" required maxlength="50" placeholder="letras minúsculas e números (ex.: maria.silva)">
+
+            <label for="register-password">Senha (8 a 72 caracteres)</label>
+            <div class="password-field">
+              <input id="register-password" name="senha" type="password" autocomplete="new-password" required minlength="8" maxlength="72" placeholder="Mínimo de 8 caracteres">
+              <button type="button" class="text-button" data-toggle-password="register-password" aria-controls="register-password" aria-pressed="false">Mostrar</button>
+            </div>
+
+            <p id="register-message" class="form-message error-message" role="alert" hidden></p>
+            <button class="button primary full" type="submit" data-busy-label="Criando conta...">Concluir cadastro</button>
+          </form>
+          <button type="button" class="text-button recovery-back" data-action="back-to-login">← Voltar para o login</button>
+        </section>
+
+        <section id="recovery-panel" aria-labelledby="recovery-title" hidden>
+          <span class="eyebrow">RECUPERAR ACESSO</span>
+          <h2 id="recovery-title" tabindex="-1">Esqueci minha senha</h2>
+          <p class="muted">Vale para clientes, funcionários e ONGs. Informe o e-mail cadastrado na sua conta e enviaremos um link para criar uma nova senha.</p>
+          <form id="recovery-form" novalidate>
+            <label for="recovery-email">E-mail da conta</label>
+            <input id="recovery-email" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" required maxlength="255" placeholder="voce@exemplo.com">
+            <p id="recovery-message" class="form-message" role="status" hidden></p>
+            <button class="button primary full" type="submit" data-busy-label="Enviando...">Enviar link de recuperação</button>
+          </form>
+          <button type="button" class="text-button recovery-back" data-action="back-to-login">← Voltar para o login</button>
+        </section>
+
+        <section id="reset-panel" aria-labelledby="reset-title" hidden>
+          <span class="eyebrow">NOVA SENHA</span>
+          <h2 id="reset-title" tabindex="-1">Crie uma nova senha</h2>
+          <p class="muted">Use de 8 a 72 caracteres. O link vale por 30 minutos e só pode ser usado uma vez.</p>
+          <form id="reset-form" novalidate>
+            <label for="reset-password">Nova senha</label>
+            <div class="password-field">
+              <input id="reset-password" name="novaSenha" type="password" autocomplete="new-password" required minlength="8" maxlength="72" placeholder="Mínimo de 8 caracteres">
+              <button type="button" class="text-button" data-toggle-password="reset-password" aria-controls="reset-password" aria-pressed="false">Mostrar</button>
+            </div>
+            <label for="reset-password-confirm">Confirme a nova senha</label>
+            <div class="password-field">
+              <input id="reset-password-confirm" name="confirmacao" type="password" autocomplete="new-password" required minlength="8" maxlength="72" placeholder="Repita a senha">
+              <button type="button" class="text-button" data-toggle-password="reset-password-confirm" aria-controls="reset-password-confirm" aria-pressed="false">Mostrar</button>
+            </div>
+            <p id="reset-message" class="form-message error-message" role="alert" hidden></p>
+            <button class="button primary full" type="submit" data-busy-label="Salvando...">Salvar nova senha</button>
+          </form>
+          <button type="button" class="text-button recovery-back" data-action="back-to-login">← Voltar para o login</button>
+        </section>
       </div>
       <span class="login-bottom">Maga Next · Devolução Inteligente</span>
     </div>
