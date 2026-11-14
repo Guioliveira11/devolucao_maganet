@@ -1,0 +1,91 @@
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/config/ExpiracaoProperties.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/config/NotificacaoJob.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/config/NotificacaoProperties.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/config/QRCodeExpirationJob.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/config/SecurityConfig.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/config/TempoConfig.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/controller/AcompanhamentoController.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/controller/ItemCompradoController.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/controller/LojaController.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/controller/NotificacaoController.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/controller/RedefinicaoSenhaController.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/domain/ContaAcesso.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/domain/ItemComprado.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/domain/Loja.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/domain/Pedido.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/domain/QRCodeDevolucao.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/domain/RedefinicaoSenha.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/domain/SolicitacaoDevolucao.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/domain/enums/EventoCliente.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/domain/enums/StatusSolicitacao.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/dto/CadastroFuncionarioRequest.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/dto/CadastroOngRequest.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/dto/EventoClienteResponse.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/dto/NotificacaoResponse.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/dto/PaginaResponse.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/dto/PreferenciasNotificacao.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/dto/RedefinicaoConfirmarRequest.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/dto/RedefinicaoSolicitarRequest.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/dto/SolicitacaoResponse.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/exception/FalhaGeracaoQRCodeException.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/exception/GlobalExceptionHandler.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/exception/ParametroInvalidoException.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/exception/RegraNegocioException.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/repository/ContaAcessoRepository.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/repository/ItemCompradoRepository.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/repository/NotificacaoRepository.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/repository/RedefinicaoSenhaRepository.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/repository/SolicitacaoDevolucaoRepository.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/service/AcompanhamentoService.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/service/CadastroService.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/service/EnvioEmailService.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/service/LojaProximaService.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/service/NotificacaoService.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/service/QRCodeService.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/service/RedefinicaoSenhaService.java.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in src/main/java/com/magalu/devolucao/service/ResultadoLo

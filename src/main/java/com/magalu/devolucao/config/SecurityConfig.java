@@ -33,11 +33,16 @@ public class SecurityConfig {
             var conta = contas.findByLogin(login)
                     .orElseThrow(() -> new UsernameNotFoundException("Credenciais invalidas"));
 
-            if ((conta.getUsuario() == null) == (conta.getFuncionario() == null)) {
+            // Cada conta deve estar ligada a exatamente UM perfil: cliente, funcionario ou ONG.
+            int vinculos = (conta.getUsuario() != null ? 1 : 0)
+                    + (conta.getFuncionario() != null ? 1 : 0)
+                    + (conta.getOng() != null ? 1 : 0);
+            if (vinculos != 1) {
                 throw new UsernameNotFoundException("Conta sem vinculo valido");
             }
 
-            String role = conta.getUsuario() != null ? "CLIENTE" : "FUNCIONARIO";
+            String role = conta.getUsuario() != null ? "CLIENTE"
+                    : conta.getFuncionario() != null ? "FUNCIONARIO" : "ONG";
             boolean isLocked = conta.isBloqueada(LocalDateTime.now(clock));
 
             return User.withUsername(conta.getLogin())
@@ -54,10 +59,15 @@ public class SecurityConfig {
         // CSRF permanece habilitado: usar o token de /api/v1/csrf nas escritas.
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.GET, "/", "/index.html", "/app.css", "/app.js",
-                        "/vendor/jsQR.js", "/fonts/Poppins-Regular.ttf", "/fonts/Poppins-Bold.ttf", 
+                        "/assets/**", "/vendor/jsQR.js", "/fonts/Poppins-Regular.ttf", "/fonts/Poppins-Bold.ttf", 
                         "/api/v1/csrf", "/manifest.webmanifest", "/icon.svg", "/sw.js").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/sessao").permitAll()
+                // Recuperacao de senha e cadastro: publicos (o CSRF continua exigido nas escritas).
+                .requestMatchers(HttpMethod.POST, "/api/v1/redefinicao/solicitar", "/api/v1/redefinicao/confirmar").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/cadastro/opcoes").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/cadastro/cliente", "/api/v1/cadastro/funcionario", "/api/v1/cadastro/ong").permitAll()
                 .requestMatchers("/api/v1/funcionario/**").hasRole("FUNCIONARIO")
+                .requestMatchers("/api/v1/ong/**").hasRole("ONG")
                 .requestMatchers("/api/v1/devolucoes/**", "/api/v1/itens/**", "/api/v1/notificacoes/**").hasRole("CLIENTE")
                 .anyRequest().authenticated()
         );

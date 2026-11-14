@@ -103,6 +103,30 @@ public class RedefinicaoSenhaService {
         redefinicoes.invalidarPendentes(conta.getId(), agora);
     }
 
+    @Transactional
+    public void alterarSenhaAutenticado(String senhaAtual, String novaSenha) {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated())
+            throw new org.springframework.security.access.AccessDeniedException("Autenticacao obrigatoria");
+
+        ContaAcesso conta = contas.findByLogin(auth.getName())
+                .filter(ContaAcesso::isAtiva)
+                .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("Conta nao encontrada"));
+
+        if (senhaAtual == null || !encoder.matches(senhaAtual, conta.getSenhaHash()))
+            throw new ParametroInvalidoException("A senha atual está incorreta.");
+
+        if (novaSenha == null || novaSenha.length() < 8 || novaSenha.getBytes(StandardCharsets.UTF_8).length > 72)
+            throw new ParametroInvalidoException("A nova senha deve ter de 8 a 72 caracteres.");
+
+        if (encoder.matches(novaSenha, conta.getSenhaHash()))
+            throw new ParametroInvalidoException("A nova senha deve ser diferente da senha atual.");
+
+        conta.setSenhaHash(encoder.encode(novaSenha));
+        conta.registrarSucesso();
+        redefinicoes.invalidarPendentes(conta.getId(), LocalDateTime.now(clock));
+    }
+
     private ParametroInvalidoException linkInvalido() {
         return new ParametroInvalidoException("Link inválido ou expirado. Peça um novo link de recuperação.");
     }

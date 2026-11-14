@@ -59,11 +59,11 @@ function productGlyph(name = '') {
 
 function productImageUrl(name = '') {
   const lower = name.toLowerCase();
-  if (lower.includes('vestido') || lower.includes('camisa') || lower.includes('roupa')) return '/assets/vestido-camponesa.svg';
-  if (lower.includes('fone') || lower.includes('caixa de som')) return '/assets/produto-audio.svg';
-  if (lower.includes('tv') || lower.includes('monitor')) return '/assets/produto-tv.svg';
-  if (lower.includes('cafeteira') || lower.includes('liquidificador')) return '/assets/produto-eletro.svg';
-  return '/assets/produto-box.svg';
+  if (lower.includes('vestido') || lower.includes('camisa') || lower.includes('roupa')) return '/assets/foto-vestido.jpg';
+  if (lower.includes('fone') || lower.includes('caixa de som')) return '/assets/foto-audio.jpg';
+  if (lower.includes('tv') || lower.includes('monitor')) return '/assets/foto-tv.jpg';
+  if (lower.includes('cafeteira') || lower.includes('liquidificador')) return '/assets/foto-eletro.jpg';
+  return '/assets/foto-box.jpg';
 }
 
 const STATUS_NAMES = {
@@ -453,6 +453,7 @@ function showLogin(message = '') {
   $('#login-error').textContent = message;
   $('#login-error').hidden = !message;
   $('#password').value = '';
+  showLoginPanel('main');
 
   for (const dialog of [$('#confirm-dialog'), $('#idle-dialog')]) {
     if (dialog?.open) dialog.close('cancel');
@@ -481,10 +482,18 @@ const EMPLOYEE_MENU = [
   ['conta', 'Conta', 'user'],
 ];
 
+const ONG_MENU = [
+  ['doacoes', 'Doações', 'heart'],
+  ['conta', 'Conta', 'user'],
+];
+
+const MENUS = { CLIENTE: CLIENT_MENU, FUNCIONARIO: EMPLOYEE_MENU, ONG: ONG_MENU };
+const HOME_VIEWS = { CLIENTE: 'itens', FUNCIONARIO: 'fila', ONG: 'doacoes' };
+
 function renderNav() {
   if (!state.user) return;
 
-  const menu = state.user.perfil === 'CLIENTE' ? CLIENT_MENU : EMPLOYEE_MENU;
+  const menu = MENUS[state.user.perfil] || EMPLOYEE_MENU;
   const parentMap = {
     motivo: 'itens',
     evidencias: 'itens',
@@ -535,10 +544,12 @@ async function enter(user) {
 
   const badge = $('#header-role-badge');
   if (badge) {
-    badge.textContent = isClient ? 'Cliente' : (user.loja || 'Operação Loja');
+    if (isClient) badge.textContent = 'Cliente';
+    else if (user.perfil === 'ONG') badge.textContent = 'ONG parceira';
+    else badge.textContent = user.loja || 'Operação Loja';
   }
 
-  await go(isClient ? 'itens' : 'fila');
+  await go(HOME_VIEWS[user.perfil] || 'fila');
 }
 
 const LOADING_HTML = `
@@ -1165,8 +1176,11 @@ async function accountView() {
   const isClient = user.perfil === 'CLIENTE';
   const initial = esc((user.nome || '?').slice(0, 1).toUpperCase());
 
+  const isOng = user.perfil === 'ONG';
   let body = '<p class="muted">Perfil habilitado para conferência física de produtos, leitura de QR Code e destinação socioambiental ou estoque.</p>';
-  if (isClient) {
+  if (isOng) {
+    body = '<p class="muted">Perfil habilitado para acompanhar as doações encaminhadas à sua organização e confirmar o recebimento dos produtos.</p>';
+  } else if (isClient) {
     const prefs = await api('/notificacoes/preferencias');
     body = `
       <form id="preferences-form">
@@ -1188,10 +1202,39 @@ async function accountView() {
         <div class="account-avatar" aria-hidden="true">${initial}</div>
         <div>
           <h3>${esc(user.nome)}</h3>
-          <p class="muted">${isClient ? 'Cliente E-commerce' : `Atendente de Loja · ${esc(user.loja)}`}</p>
+          <p class="muted">${isClient ? 'Cliente E-commerce' : isOng ? 'ONG parceira' : `Atendente de Loja · ${esc(user.loja)}`}</p>
         </div>
       </div>
       ${body}
+    </section>
+
+    <section class="card account-card">
+      <div>
+        <h3>Segurança da conta</h3>
+        <p class="muted">Altere sua senha de acesso quando quiser. Use entre 8 e 72 caracteres.</p>
+      </div>
+      <form id="change-password-form" novalidate>
+        <label for="current-password">Senha atual</label>
+        <div class="password-field">
+          <input id="current-password" name="senhaAtual" type="password" autocomplete="current-password" required placeholder="Sua senha atual">
+          <button type="button" class="text-button" data-toggle-password="current-password" aria-controls="current-password" aria-pressed="false">Mostrar</button>
+        </div>
+
+        <label for="new-password">Nova senha</label>
+        <div class="password-field">
+          <input id="new-password" name="novaSenha" type="password" autocomplete="new-password" required minlength="8" maxlength="72" placeholder="Mínimo de 8 caracteres">
+          <button type="button" class="text-button" data-toggle-password="new-password" aria-controls="new-password" aria-pressed="false">Mostrar</button>
+        </div>
+
+        <label for="confirm-new-password">Confirme a nova senha</label>
+        <div class="password-field">
+          <input id="confirm-new-password" name="confirmacao" type="password" autocomplete="new-password" required minlength="8" maxlength="72" placeholder="Repita a nova senha">
+          <button type="button" class="text-button" data-toggle-password="confirm-new-password" aria-controls="confirm-new-password" aria-pressed="false">Mostrar</button>
+        </div>
+
+        <p id="change-password-message" class="form-message error-message" role="alert" hidden></p>
+        <button class="button primary full" type="submit" data-busy-label="Salvando...">Alterar senha</button>
+      </form>
     </section>`;
 }
 
@@ -1296,6 +1339,86 @@ async function queueView({ pagina = 0, status = '', destino = '', minimoHoras = 
         navigateButton('receber', 'Escanear QR Code'));
 
   return pageHeading(state.user.loja || 'OPERAÇÃO DE LOJA', 'Pedidos para conferência', 'Acesse os pedidos que aguardam conferência na loja.')
+    + featured
+    + filters
+    + list
+    + pagination(page);
+}
+
+// Telas da ONG parceira (mesmo layout do Funcionário, com a paleta verde)
+const DOACAO_STATUS = {
+  DESTINO_PENDENTE: 'Aguardando recebimento',
+  CONCLUIDA: 'Recebida pela ONG',
+};
+
+const DOACAO_COLORS = {
+  DESTINO_PENDENTE: 'purple',
+  CONCLUIDA: 'green',
+};
+
+function donationCard(d) {
+  const pending = d.status === 'DESTINO_PENDENTE';
+  const action = pending
+    ? `<button type="button" class="button primary full" data-action="confirm-donation" data-id="${d.id}" data-busy-label="Confirmando...">
+        ${icon('checkCircle')} Confirmar recebimento
+      </button>`
+    : `<p class="small-note">Recebimento confirmado em <strong>${esc(formatDateTime(d.concluidaEm))}</strong></p>`;
+
+  return `
+    <article class="card">
+      <div class="product-visual">
+        <img class="product-photo" src="${productImageUrl(d.produto)}" alt="${esc(d.produto)}" loading="lazy">
+      </div>
+      <div class="order-card-row">
+        <div>
+          <div class="order-number">Pedido #${esc(d.numeroPedido)} · ${plural(d.quantidade, 'item', 'itens')}</div>
+          <h3 class="order-title">${esc(d.produto)}</h3>
+          <p class="muted">${esc(d.categoria || 'Sem categoria')} · Loja ${esc(d.loja)}</p>
+        </div>
+        <div class="category-badge" aria-hidden="true">${icon(productGlyph(d.produto))}</div>
+      </div>
+      <div class="summary-kv-row"><span>Situação</span><strong><span class="tag ${DOACAO_COLORS[d.status] || ''}">${esc(DOACAO_STATUS[d.status] || d.status)}</span></strong></div>
+      <div class="summary-kv-row"><span>Destinada em</span><strong>${esc(formatDateTime(d.definidaEm))}</strong></div>
+      ${action}
+    </article>`;
+}
+
+async function donationsView({ pagina = 0, status = '' } = {}) {
+  const page = await api(`/ong/doacoes?${toQueryString({ pagina, tamanho: 12, status })}`);
+
+  const nextToConfirm = page.itens.find((d) => d.status === 'DESTINO_PENDENTE');
+  const featured = nextToConfirm ? `
+    <section class="featured-queue-card">
+      <div class="product-visual">
+        <span class="tag green featured-status-pill">Aguardando recebimento</span>
+        <img class="product-photo" src="${productImageUrl(nextToConfirm.produto)}" alt="${esc(nextToConfirm.produto)}">
+      </div>
+      <div class="featured-queue-body">
+        <div class="order-card-row">
+          <div>
+            <span class="order-number">Pedido #${esc(nextToConfirm.numeroPedido)} · ${plural(nextToConfirm.quantidade, 'item', 'itens')}</span>
+            <h2 style="font-size: 22px; margin-top: 2px;">${esc(nextToConfirm.produto)}</h2>
+            <p class="muted" style="font-size: 13px; margin-top: 2px;">${esc(nextToConfirm.categoria || 'Doação')} · Loja ${esc(nextToConfirm.loja)} · Destinada em ${esc(formatDateTime(nextToConfirm.definidaEm))}</p>
+          </div>
+          <div class="category-badge">${icon(productGlyph(nextToConfirm.produto))}</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 6px;">
+          <button type="button" class="button primary full" data-action="confirm-donation" data-id="${nextToConfirm.id}" data-busy-label="Confirmando...">
+            ${icon('checkCircle')} Confirmar recebimento
+          </button>
+        </div>
+      </div>
+    </section>` : '';
+
+  const filters = `<div class="chips" role="group" aria-label="Filtrar doações por situação">${chips(DOACAO_STATUS, status, 'Todas', 'ong-chip')}</div>`;
+
+  const list = page.itens.length
+    ? `<div class="cards">${page.itens.map(donationCard).join('')}</div>`
+    : emptyState('Nenhuma doação encontrada',
+        status ? 'Não há doações nesta situação. Escolha outro filtro.'
+          : 'Quando uma loja destinar produtos à sua organização, eles aparecerão aqui.');
+
+  return pageHeading('ONG PARCEIRA', 'Doações recebidas', 'Acompanhe os produtos destinados à sua organização e confirme quando chegarem.')
     + featured
     + filters
     + list
@@ -1637,6 +1760,7 @@ const VIEWS = {
   resultado: resultView,
   concluido: completedView,
   receber: receiveView,
+  doacoes: donationsView,
 };
 
 
@@ -1823,6 +1947,7 @@ $('#content').addEventListener('click', (event) => {
     case 'refresh': return go(state.view, state.params);
     case 'chip': return go('devolucoes', { status: value });
     case 'chip-unread': return go('avisos', { naoLidas: value === '1' });
+    case 'ong-chip': return go('doacoes', { status: value });
     case 'page': return go(state.view, { ...state.params, pagina: Number(page) });
     case 'history-page': return go('detalhe', { ...state.params, histPagina: Number(page) });
     case 'detail': return go('detalhe', { id });
@@ -1882,9 +2007,21 @@ $('#content').addEventListener('click', (event) => {
     renew: () => renewQr(id),
     cancel: () => cancelReturn(id),
     read: () => markNotificationRead(id),
+    'confirm-donation': () => confirmDonation(id),
   };
   if (handlers[action]) whileBusy(button, handlers[action]);
 });
+
+async function confirmDonation(id) {
+  const confirmed = await askConfirmation(
+    'Confirmar recebimento?',
+    'Confirme apenas se os produtos já chegaram à sua organização. Esta ação não pode ser desfeita.',
+    'Confirmar recebimento');
+  if (!confirmed) return;
+  await api(`/ong/doacoes/${encodeURIComponent(id)}/confirmar`, { method: 'POST' });
+  toast('Recebimento confirmado. Obrigado por receber esta doação!');
+  await go('doacoes', state.params, { keepScroll: true });
+}
 
 $('#content').addEventListener('change', async (event) => {
   const target = event.target;
@@ -1986,9 +2123,40 @@ $('#content').addEventListener('submit', (event) => {
     if (form.id === 'resolution-form') await submitReturnRequest();
     else if (form.id === 'result-form') await submitInspectionResult();
     else if (form.id === 'preferences-form') await savePreferences(data);
+    else if (form.id === 'change-password-form') await submitChangePassword(form, data);
     else if (form.id === 'receive-form') await receiveProduct(String(data.get('token')).trim());
   });
 });
+
+async function submitChangePassword(form, data) {
+  const senhaAtual = String(data.get('senhaAtual') || '');
+  const novaSenha = String(data.get('novaSenha') || '');
+  const confirmacao = String(data.get('confirmacao') || '');
+
+  setFormMessage('#change-password-message', '');
+  if (!senhaAtual) {
+    setFormMessage('#change-password-message', 'Informe sua senha atual.', true);
+    $('#current-password')?.focus();
+    return;
+  }
+  if (novaSenha.length < 8 || new TextEncoder().encode(novaSenha).length > 72) {
+    setFormMessage('#change-password-message', 'A nova senha deve ter de 8 a 72 caracteres.', true);
+    $('#new-password')?.focus();
+    return;
+  }
+  if (novaSenha !== confirmacao) {
+    setFormMessage('#change-password-message', 'A confirmação não confere com a nova senha.', true);
+    $('#confirm-new-password')?.focus();
+    return;
+  }
+  try {
+    await api('/redefinicao/alterar-senha', { method: 'PUT', body: { senhaAtual, novaSenha } });
+    form.reset();
+    toast('Senha alterada com sucesso!');
+  } catch (error) {
+    setFormMessage('#change-password-message', error.message, true);
+  }
+}
 
 $('#header-search').addEventListener('submit', (event) => {
   event.preventDefault();
@@ -2036,6 +2204,278 @@ $('#logout').addEventListener('click', (event) => whileBusy(event.currentTarget,
   await api('/sessao/sair', { method: 'POST' });
   showLogin();
 }));
+
+
+// ---------------------------------------------------------------------------
+// Recuperação de senha e cadastro de contas (clientes, funcionários e ONGs)
+// ---------------------------------------------------------------------------
+
+const LOGIN_PANELS = {
+  main: '#login-main',
+  recovery: '#recovery-panel',
+  reset: '#reset-panel',
+  register: '#register-panel',
+};
+const RESET_LINK_PATTERN = /^#redefinir-senha=([A-Za-z0-9_-]{20,128})$/;
+let resetToken = null;
+let registerOptions = null;
+
+// Alterna Mostrar/Ocultar senha em qualquer campo com data-toggle-password
+document.addEventListener('click', (event) => {
+  const toggle = event.target.closest('button[data-toggle-password]');
+  if (!toggle) return;
+  const input = document.getElementById(toggle.dataset.togglePassword);
+  if (!input) return;
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  toggle.textContent = show ? 'Ocultar' : 'Mostrar';
+  toggle.setAttribute('aria-pressed', String(show));
+});
+
+function setFormMessage(selector, text, isError = false) {
+  const el = $(selector);
+  if (!el) return;
+  el.textContent = text;
+  el.classList.toggle('error-message', isError);
+  el.setAttribute('role', isError ? 'alert' : 'status');
+  el.hidden = !text;
+}
+
+function showLoginPanel(name) {
+  for (const [key, selector] of Object.entries(LOGIN_PANELS)) {
+    const panel = $(selector);
+    if (panel) panel.hidden = key !== name;
+  }
+
+  if (name === 'main') {
+    resetToken = null;
+    $('#recovery-form')?.reset();
+    $('#reset-form')?.reset();
+    $('#register-form')?.reset();
+    setFormMessage('#recovery-message', '');
+    setFormMessage('#reset-message', '');
+    setFormMessage('#register-message', '');
+    return;
+  }
+  const titleMap = { recovery: '#recovery-title', reset: '#reset-title', register: '#register-title' };
+  $(titleMap[name] || '#recovery-title')?.focus({ preventScroll: true });
+}
+
+function setRegisterType(tipo) {
+  $('#register-type').value = tipo;
+  document.querySelectorAll('[data-register-type]').forEach((chip) => {
+    chip.setAttribute('aria-pressed', String(chip.dataset.registerType === tipo));
+  });
+  $('#register-client-fields').hidden = tipo !== 'CLIENTE';
+  $('#register-employee-fields').hidden = tipo !== 'FUNCIONARIO';
+  $('#register-ong-fields').hidden = tipo !== 'ONG';
+  $('#register-name-label').textContent = tipo === 'ONG' ? 'Nome da ONG' : 'Nome completo';
+  $('#register-name').placeholder = tipo === 'ONG' ? 'Ex.: Instituto EcoVida' : 'Seu nome completo';
+  setFormMessage('#register-message', '');
+}
+
+async function loadRegisterOptions() {
+  try {
+    registerOptions = await api('/cadastro/opcoes');
+  } catch {
+    registerOptions = { cadastroFuncionario: false, cadastroOng: false, lojas: [], categorias: [] };
+  }
+
+  const storeSelect = $('#register-store');
+  if (storeSelect) {
+    const stores = registerOptions.lojas || [];
+    storeSelect.innerHTML = '<option value="">Selecione a loja</option>'
+      + stores.map((l) => `<option value="${l.id}">${esc(l.nome)}</option>`).join('');
+  }
+
+  const catContainer = $('#register-ong-categories');
+  if (catContainer) {
+    const cats = registerOptions.categorias?.length
+      ? registerOptions.categorias
+      : ['Moda', 'Eletro', 'Audio', 'Informatica', 'Casa'];
+    catContainer.innerHTML = cats.map((c) => `
+      <label class="register-cat-option">
+        <input type="checkbox" name="categoriaOng" value="${esc(c)}" checked>
+        <span>${esc(c)}</span>
+      </label>`).join('');
+  }
+}
+
+$('#open-register-button')?.addEventListener('click', async () => {
+  $('#login-error').hidden = true;
+  setRegisterType('CLIENTE');
+  showLoginPanel('register');
+  await loadRegisterOptions();
+  $('#register-name')?.focus();
+});
+
+document.querySelectorAll('[data-register-type]').forEach((chip) => {
+  chip.addEventListener('click', () => setRegisterType(chip.dataset.registerType));
+});
+
+$('#register-form')?.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const form = event.target;
+  const data = new FormData(form);
+  const tipo = String(data.get('tipo') || 'CLIENTE');
+  const button = form.querySelector('[type=submit]');
+
+  const nome = String(data.get('nome') || '').trim();
+  const email = String(data.get('email') || '').trim();
+  const login = String(data.get('login') || '').trim().toLowerCase();
+  const senha = String(data.get('senha') || '');
+
+  if (!nome) {
+    setFormMessage('#register-message', 'Informe o nome.', true);
+    $('#register-name').focus();
+    return;
+  }
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    setFormMessage('#register-message', 'Informe um e-mail válido.', true);
+    $('#register-email').focus();
+    return;
+  }
+  if (!/^[a-z0-9._-]{3,50}$/.test(login)) {
+    setFormMessage('#register-message', 'O login deve ter de 3 a 50 caracteres (letras minúsculas, números, ponto, hífen ou sublinhado).', true);
+    $('#register-login').focus();
+    return;
+  }
+  if (senha.length < 8 || new TextEncoder().encode(senha).length > 72) {
+    setFormMessage('#register-message', 'A senha deve ter de 8 a 72 caracteres.', true);
+    $('#register-password').focus();
+    return;
+  }
+
+  let endpoint = '/cadastro/cliente';
+  let body = { nome, email, login, senha };
+
+  if (tipo === 'CLIENTE') {
+    const cpf = String(data.get('cpf') || '').replace(/\D/g, '');
+    if (cpf.length !== 11) {
+      setFormMessage('#register-message', 'Informe um CPF válido com 11 dígitos.', true);
+      $('#register-cpf').focus();
+      return;
+    }
+    body = { ...body, cpf, telefone: String(data.get('telefone') || '').trim() || null };
+  } else if (tipo === 'FUNCIONARIO') {
+    endpoint = '/cadastro/funcionario';
+    const matricula = String(data.get('matricula') || '').trim();
+    const lojaId = Number(data.get('lojaId') || 0);
+    const codigoConvite = String(data.get('codigoConviteFuncionario') || '').trim();
+    if (!matricula || !lojaId || !codigoConvite) {
+      setFormMessage('#register-message', 'Preencha matrícula, loja e código de convite.', true);
+      return;
+    }
+    body = { ...body, matricula, lojaId, codigoConvite };
+  } else if (tipo === 'ONG') {
+    endpoint = '/cadastro/ong';
+    const cnpj = String(data.get('cnpj') || '').replace(/\D/g, '');
+    const categorias = data.getAll('categoriaOng').map(String);
+    const codigoConvite = String(data.get('codigoConviteOng') || '').trim();
+    if (cnpj.length !== 14 || !categorias.length || !codigoConvite) {
+      setFormMessage('#register-message', 'Preencha CNPJ válido (14 dígitos), categorias e código de convite.', true);
+      return;
+    }
+    body = { ...body, cnpj, categorias, codigoConvite };
+  }
+
+  whileBusy(button, async () => {
+    setFormMessage('#register-message', '');
+    try {
+      await api(endpoint, { method: 'POST', body });
+      showLoginPanel('main');
+      $('#username').value = login;
+      toast('Conta criada com sucesso! Entre com seu login e senha.');
+      $('#password').focus();
+    } catch (error) {
+      setFormMessage('#register-message', error.message, true);
+    }
+  });
+});
+
+$('#forgot-password-link').addEventListener('click', () => {
+  $('#login-error').hidden = true;
+  const typed = $('#username').value.trim();
+  showLoginPanel('recovery');
+  // Se a pessoa digitou um e-mail no campo de login, reaproveita; login comum nao e e-mail.
+  if (typed.includes('@')) $('#recovery-email').value = typed;
+  $('#recovery-email').focus();
+});
+
+document.querySelectorAll('[data-action="back-to-login"]').forEach((button) =>
+  button.addEventListener('click', () => {
+    showLoginPanel('main');
+    $('#username').focus();
+  }));
+
+$('#recovery-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const email = $('#recovery-email').value.trim();
+  const button = event.target.querySelector('[type=submit]');
+
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    setFormMessage('#recovery-message', 'Digite um e-mail válido, como voce@exemplo.com.', true);
+    $('#recovery-email').focus();
+    return;
+  }
+
+  whileBusy(button, async () => {
+    setFormMessage('#recovery-message', '');
+    try {
+      await api('/redefinicao/solicitar', { method: 'POST', body: { email } });
+      // Mesma resposta exista ou nao uma conta: nao revela quem tem cadastro.
+      setFormMessage('#recovery-message',
+        'Se houver uma conta com este e-mail, enviaremos um link para criar uma nova senha. '
+        + 'Ele vale por 30 minutos. Confira também a caixa de spam.');
+    } catch (error) {
+      setFormMessage('#recovery-message', error.status === 429
+        ? 'Muitos pedidos seguidos. Aguarde alguns minutos e tente novamente.'
+        : error.message, true);
+    }
+  });
+});
+
+$('#reset-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const novaSenha = $('#reset-password').value;
+  const confirmacao = $('#reset-password-confirm').value;
+  const button = event.target.querySelector('[type=submit]');
+
+  if (novaSenha.length < 8 || new TextEncoder().encode(novaSenha).length > 72) {
+    setFormMessage('#reset-message', 'A senha deve ter de 8 a 72 caracteres.', true);
+    $('#reset-password').focus();
+    return;
+  }
+  if (novaSenha !== confirmacao) {
+    setFormMessage('#reset-message', 'As senhas não são iguais. Digite a mesma senha nos dois campos.', true);
+    $('#reset-password-confirm').focus();
+    return;
+  }
+
+  whileBusy(button, async () => {
+    setFormMessage('#reset-message', '');
+    try {
+      await api('/redefinicao/confirmar', { method: 'POST', body: { token: resetToken, novaSenha } });
+      showLoginPanel('main');
+      toast('Senha alterada com sucesso. Entre com a nova senha.');
+      $('#username').focus();
+    } catch (error) {
+      setFormMessage('#reset-message', error.message, true);
+    }
+  });
+});
+
+/** Abre o painel de nova senha quando a pessoa chega pelo link do e-mail. */
+function openResetFromLink() {
+  const match = RESET_LINK_PATTERN.exec(location.hash);
+  if (!match) return false;
+  // Tira o token da barra de enderecos e do historico assim que ele e lido.
+  history.replaceState(null, '', location.pathname + location.search);
+  showLogin();
+  resetToken = match[1];
+  showLoginPanel('reset');
+  return true;
+}
 
 
 // ---------------------------------------------------------------------------
@@ -2230,6 +2670,7 @@ $('#idle-dialog').addEventListener('close', markActivity);
 // ---------------------------------------------------------------------------
 
 async function start() {
+  if (openResetFromLink()) return;
   try {
     const user = await api('/sessao');
     csrf = await fetchCsrfToken();

@@ -58,7 +58,8 @@ body {
 }
 
 /* Tema escuro operacional exclusivo para o perfil Funcionário (Moodboard 2) */
-body[data-role="FUNCIONARIO"] {
+body[data-role="FUNCIONARIO"],
+body[data-role="ONG"] {
   --blue: #2855DF;
   --blue-dark: #1E42B8;
   background: linear-gradient(180deg, #0B153D 0%, #101F57 60%, #0B153D 100%);
@@ -192,7 +193,8 @@ input[type="checkbox"]:checked {
   border-color: var(--blue-dark);
 }
 
-body[data-role="FUNCIONARIO"] input[type="checkbox"]:checked {
+body[data-role="FUNCIONARIO"] input[type="checkbox"]:checked,
+body[data-role="ONG"] input[type="checkbox"]:checked {
   background: var(--blue-op);
   border-color: var(--blue-op);
 }
@@ -215,7 +217,8 @@ input[type="radio"]::before {
   transition: transform 0.14s var(--ease);
 }
 
-body[data-role="FUNCIONARIO"] input[type="radio"]::before {
+body[data-role="FUNCIONARIO"] input[type="radio"]::before,
+body[data-role="ONG"] input[type="radio"]::before {
   background: var(--blue-op);
 }
 
@@ -223,7 +226,8 @@ input[type="radio"]:checked {
   border-color: var(--blue-dark);
 }
 
-body[data-role="FUNCIONARIO"] input[type="radio"]:checked {
+body[data-role="FUNCIONARIO"] input[type="radio"]:checked,
+body[data-role="ONG"] input[type="radio"]:checked {
   border-color: var(--blue-op);
 }
 
@@ -602,13 +606,51 @@ svg {
   text-decoration: underline;
 }
 
-#recovery-panel h2, #reset-panel h2 {
+#recovery-panel h2, #reset-panel h2, #register-panel h2 {
   margin-bottom: 10px;
 }
 
-#recovery-panel > .muted, #reset-panel > .muted {
+#recovery-panel > .muted, #reset-panel > .muted, #register-panel > .muted {
   font-size: 13px;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
+}
+
+.login-register-btn {
+  margin-top: 10px;
+}
+
+.register-type-chips {
+  margin-bottom: 16px;
+}
+
+.register-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 14px;
+}
+
+.register-cat-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#change-password-form label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 12px 0 6px;
+}
+
+#change-password-form .button {
+  margin-top: 14px;
 }
 
 .form-message {
@@ -666,24 +708,31 @@ svg {
   z-index: 30;
 }
 
-body[data-role="FUNCIONARIO"] .app-header {
+body[data-role="FUNCIONARIO"] .app-header,
+body[data-role="ONG"] .app-header {
   background: rgba(11, 21, 61, 0.94);
   border-bottom-color: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(12px);
 }
 
 body[data-role="FUNCIONARIO"] .app-header .brand-maga,
+body[data-role="ONG"] .app-header .brand-maga,
 body[data-role="FUNCIONARIO"] .app-header .header-account,
-body[data-role="FUNCIONARIO"] .app-header .text-button {
+body[data-role="ONG"] .app-header .header-account,
+body[data-role="FUNCIONARIO"] .app-header .text-button,
+body[data-role="ONG"] .app-header .text-button {
   color: var(--white);
 }
 
 body[data-role="FUNCIONARIO"] .app-header .brand-next,
-body[data-role="FUNCIONARIO"] .app-header .brand-arrows {
+body[data-role="ONG"] .app-header .brand-next,
+body[data-role="FUNCIONARIO"] .app-header .brand-arrows,
+body[data-role="ONG"] .app-header .brand-arrows {
   color: var(--cyan);
 }
 
-body[data-role="FUNCIONARIO"] .app-header .brand-caption {
+body[data-role="FUNCIONARIO"] .app-header .brand-caption,
+body[data-role="ONG"] .app-header .brand-caption {
   color: var(--blue-light);
 }
 
@@ -748,7 +797,8 @@ body[data-role="FUNCIONARIO"] .app-header .brand-caption {
   color: var(--blue-dark);
 }
 
-body[data-role="FUNCIONARIO"] .role-badge {
+body[data-role="FUNCIONARIO"] .role-badge,
+body[data-role="ONG"] .role-badge {
   background: rgba(18, 185, 206, 0.18);
   color: var(--cyan);
   border: 1px solid rgba(18, 185, 206, 0.35);
@@ -777,7 +827,8 @@ body[data-role="FUNCIONARIO"] .role-badge {
   box-shadow: var(--shadow);
 }
 
-body[data-role="FUNCIONARIO"] .navigation {
+body[data-role="FUNCIONARIO"] .navigation,
+body[data-role="ONG"] .navigation {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.14);
   box-shadow: none;
@@ -811,12 +862,15 @@ body[data-role="FUNCIONARIO"] .navigation {
   font-weight: 700;
 }
 
-body[data-role="FUNCIONARIO"] .nav-button {
+body[data-role="FUNCIONARIO"] .nav-button,
+body[data-role="ONG"] .nav-button {
   color: #C2D0F0;
 }
 
 body[data-role="FUNCIONARIO"] .nav-button:hover,
-body[data-role="FUNCIONARIO"] .nav-button[aria-current="page"] {
+body[data-role="ONG"] .nav-button:hover,
+body[data-role="FUNCIONARIO"] .nav-button[aria-current="page"],
+body[data-role="ONG"] .nav-button[aria-current="page"] {
   background: var(--blue-op);
   color: var(--white);
 }
@@ -856,19 +910,23 @@ main {
   margin-top: 6px;
 }
 
-body[data-role="FUNCIONARIO"] .page-heading h1 {
+body[data-role="FUNCIONARIO"] .page-heading h1,
+body[data-role="ONG"] .page-heading h1 {
   color: var(--white);
 }
 
-body[data-role="FUNCIONARIO"] .page-heading .eyebrow {
+body[data-role="FUNCIONARIO"] .page-heading .eyebrow,
+body[data-role="ONG"] .page-heading .eyebrow {
   color: var(--cyan);
 }
 
-body[data-role="FUNCIONARIO"] .page-heading .muted {
+body[data-role="FUNCIONARIO"] .page-heading .muted,
+body[data-role="ONG"] .page-heading .muted {
   color: #B9C7EA;
 }
 
-body[data-role="FUNCIONARIO"] .page-heading .button.outline {
+body[data-role="FUNCIONARIO"] .page-heading .button.outline,
+body[data-role="ONG"] .page-heading .button.outline {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.22);
   color: var(--white);
@@ -891,7 +949,8 @@ body[data-role="FUNCIONARIO"] .page-heading .button.outline {
   color: var(--blue-dark);
 }
 
-body[data-role="FUNCIONARIO"] .step-pill {
+body[data-role="FUNCIONARIO"] .step-pill,
+body[data-role="ONG"] .step-pill {
   background: rgba(40, 85, 223, 0.45);
   color: var(--white);
 }
@@ -909,7 +968,8 @@ body[data-role="FUNCIONARIO"] .step-pill {
   min-height: 38px;
 }
 
-body[data-role="FUNCIONARIO"] .back-button {
+body[data-role="FUNCIONARIO"] .back-button,
+body[data-role="ONG"] .back-button {
   color: var(--blue-light);
 }
 
@@ -1013,22 +1073,30 @@ body[data-role="FUNCIONARIO"] .back-button {
 
 .product-visual {
   width: 100%;
-  height: 172px;
+  aspect-ratio: 4 / 3;
+  min-height: 210px;
+  max-height: 260px;
   border-radius: 14px;
-  background: linear-gradient(180deg, var(--blue-tint) 0%, #F5F8FF 100%);
-  display: grid;
-  place-items: center;
+  background: var(--white);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--blue-dark);
   position: relative;
   overflow: hidden;
+  padding: 12px;
 }
 
 .product-visual .product-photo {
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
-  padding: 8px;
+  object-position: center;
   display: block;
+  margin: auto;
 }
 
 .product-visual svg {
@@ -1094,22 +1162,29 @@ body[data-role="FUNCIONARIO"] .back-button {
 }
 
 .product-thumb {
-  width: 68px;
-  height: 68px;
+  width: 78px;
+  height: 78px;
   border-radius: 14px;
-  background: var(--blue-tint);
+  background: var(--white);
+  border: 1px solid var(--line);
   color: var(--blue-dark);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   overflow: hidden;
+  padding: 6px;
 }
 
 .product-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
   display: block;
+  margin: auto;
 }
 
 .product-thumb svg {
@@ -1595,7 +1670,9 @@ body[data-role="FUNCIONARIO"] .back-button {
 }
 
 .featured-queue-card .product-visual {
-  height: 190px;
+  aspect-ratio: 4 / 3;
+  min-height: 220px;
+  max-height: 270px;
   margin: 0;
 }
 
@@ -1891,7 +1968,8 @@ body[data-role="FUNCIONARIO"] .back-button {
   text-align: center;
 }
 
-body[data-role="FUNCIONARIO"] .pagination > span {
+body[data-role="FUNCIONARIO"] .pagination > span,
+body[data-role="ONG"] .pagination > span {
   color: #C5D3F2;
 }
 
@@ -2405,7 +2483,8 @@ dialog h2 {
     backdrop-filter: blur(12px);
   }
 
-  body[data-role="FUNCIONARIO"] .navigation {
+  body[data-role="FUNCIONARIO"] .navigation,
+  body[data-role="ONG"] .navigation {
     background: rgba(11, 21, 61, 0.96);
     border-top-color: rgba(255, 255, 255, 0.14);
   }
@@ -2444,6 +2523,19 @@ dialog h2 {
 @media (max-width: 560px) {
   .cards {
     grid-template-columns: 1fr;
+  }
+
+  .product-visual,
+  .featured-queue-card .product-visual {
+    aspect-ratio: 1 / 1;
+    min-height: 220px;
+    max-height: 280px;
+    padding: 14px;
+  }
+
+  .product-thumb {
+    width: 72px;
+    height: 72px;
   }
 }
 
@@ -2523,5 +2615,60 @@ dialog h2 {
   #content.view-leaving {
     transition: none;
     transform: none;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Perfil ONG parceira: mesmo layout escuro do Funcionario, com paleta verde.
+   Os seletores compartilhados ficam junto das regras do Funcionario acima;
+   aqui ficam apenas as cores que mudam.
+--------------------------------------------------------------------------- */
+body[data-role="ONG"] {
+  --blue: #15905D;
+  --blue-dark: #0F7A4D;
+  --blue-op: #15905D;
+  --blue-light: #A7F3D0;
+  --blue-tint: #E8F6EF;
+  --cyan: #4ADE9B;
+  background: linear-gradient(180deg, #06251A 0%, #0A3324 60%, #06251A 100%);
+}
+
+body[data-role="ONG"] .app-header {
+  background: rgba(6, 37, 26, 0.94);
+}
+
+body[data-role="ONG"] .role-badge {
+  background: rgba(74, 222, 155, 0.16);
+  border-color: rgba(74, 222, 155, 0.4);
+}
+
+body[data-role="ONG"] .step-pill {
+  background: rgba(21, 144, 93, 0.5);
+}
+
+body[data-role="ONG"] .page-heading .muted {
+  color: #C3E6D4;
+}
+
+body[data-role="ONG"] .nav-button {
+  color: #CDEBDD;
+}
+
+body[data-role="ONG"] .pagination > span {
+  color: #CDEBDD;
+}
+
+body[data-role="ONG"] .button.primary {
+  box-shadow: 0 4px 12px rgba(15, 122, 77, 0.35);
+}
+
+body[data-role="ONG"] .button.primary:hover:not(:disabled) {
+  background: #0B6540;
+}
+
+@media (max-width: 850px) {
+  body[data-role="ONG"] .navigation {
+    background: rgba(6, 37, 26, 0.96);
   }
 }
